@@ -1,4 +1,4 @@
-BerkeleyDB for D programming language
+BerkeleyDB for D programing language
 
 This package provides 2 version of interface to BerkeleyDB library for D:
 
@@ -8,7 +8,7 @@ This package provides 2 version of interface to BerkeleyDB library for D:
   fix this interface generation.
   Already generated file for BerkeleyDB 6.0.20.NC maybe found at 
   "berkeleydb/c.d" file.
-  Generator - AWK-programm bdb2d.awk.
+  Generator - AWK-program bdb2d.awk.
   To regenerate interface enough to change in the config.sh script path
   to Berkeleydb sources from "~/Programs/db-6.0.20.NC" to your
   path. After that run "./bdb2d.sh"
