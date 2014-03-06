@@ -1,0 +1,124 @@
+BerkeleyDB for D programming language
+
+This package provides 2 version of interface to BerkeleyDB library for D:
+
+- The first version repeats C-interface. This interfaces generates from 
+  BerkeleyDB headers and therefore easy maybe regenerated for new version
+  BerkeleyDB. Also when D language changes there will small changes to
+  fix this interface generation.
+  Already generated file for BerkeleyDB 6.0.20.NC maybe found at 
+  "berkeleydb/c.d" file.
+  Generator - AWK-programm bdb2d.awk.
+  To regenerate interface enough to change in the config.sh script path
+  to Berkeleydb sources from "~/Programs/db-6.0.20.NC" to your
+  path. After that run "./bdb2d.sh"
+
+- The second version tries to be more like D-interface. 
+  Below there is description of interface base idea.
+
+Interface consists of:
+- 10 classes which repears according BDB structures: 
+  Dbc, DbChannel, Db, DbEnv, DbLogc, DbMpoolfile, DbSequence, DbSite,
+  DbStream, DbTxn.
+- 7 classes of exceptions, 5 of which repeats exceptions from C++ BDB interface:
+  DbException, DbWrongUsingException, DbDeadlockException
+  DbLockNotGrantedException, DbMemoryException, DbRepHandleDeadException,
+  DbRunRecoveryException
+- structure Dbt and yet 3 attendant structures:
+  UserMemDbt, BulkDbt, RecnoBulkDbt
+
+Interfaces of classes repeats BDB interfaces but follows then next ideas:
+1) Methods like db_create/db_env_create in this library
+   replaced with constructors of according class.
+2) As for the rest names of methods fully equals.
+3) Instead of"const char*" always used "string"
+4) Instead of other arrays like DB_LOCKREQ* argument in the DB_ENV->lock_vec
+   function with reference of length in the disctinct argument used D arrays
+   like DbLockreq[] in the DbEnv.lock_vec which consists of
+   pointer and length in the one argument
+5) Instead of code errors used exceptions. The most functions turns to
+   void return. The exceptions are functions like db.get, which may return
+   not error codes (DB_KEYEMPTY, DB_NOTFOUND etc.). Full list of such functions maybe
+   found in the implementation of "DbRetCodeToException" function
+   (berkeleydb/dbexception.d file)
+5) Of course the first argument - pointer to the class is hidden
+   (for example DB_ENV *dbenv in the example of 6-th item)
+6) When function returns the single value, pointer argument turns
+   to return value. For example the function
+   int DB_ENV->get_open_flags(DB_ENV *dbenv, u_int32_t *flagsp);
+   turned to
+   uint32_t DbEnv.get_open_flags()
+   I.e. function now returns flags instead of error code
+7) Functions which gets or returns 2 arguments gbytes, bytes
+   have 2 interfaces: one like C-version with 2 arguments and
+   the secon with one 64-bit bytes argument. For example:
+   void DbEnv.set_memory_max(uint32_t gbytes, uint32_t bytes)
+   void DbEnv.set_memory_max(uint64_t bytes)
+   and
+   void DbEnv.get_memory_max(ref uint32_t gbytes, ref uint32_t bytes)
+   uint64_t DbEnv.get_memory_max()
+8) Callbacks also uses D-arguments, for example "DbEnv" instead of "DB_ENV*",
+   string instead of char *, etc.
+9) The last flags argument maybe skipped if it equals zero.
+
+Dbt structure with hidden methods declared as:
+
+struct Dbt
+{
+	DBT dbt;
+	alias dbt this;
+}
+
+This means that you can refer to Dbt type fields also as to DBT. 
+Besides this you can cast (DBT*) to (Dbt*) and vice-versa. 
+And even Dbt[] array maybe easily converted to C-style array
+with cast(DBT*)Dbt.ptr. 
+But also Dbt can such:
+
+    string hello = "Hello, world!";
+
+	Dbt dbt = hello; //dbt.data and dbt.size filled with one assignment.
+	assert(dbt.size == hello.length);
+
+	assert(dbt.to!string() == "Hello, world!"); //back conversion 
+	assert(dbt.to!string() is "Hello, world!");
+
+	struct S
+	{
+		int a;
+		byte b;
+	}
+	
+	S s;
+	s.a = 5000;
+	s.b = 22;
+
+	Dbt dbt_struct;
+    dbt_struct = s; //again dbt_struct.data & dbt_struct.size by one instruction
+	assert( dbt_struct.size == s.sizeof );
+	assert( dbt_struct.to!S() == s ); //back
+
+	S *ps = dbt_struct.to!(S*)(); //You may also convert to pointer
+	assert( *ps == s );
+	assert( ps is &s );
+
+Also you can use UserMemDbt, but it gets size of user-memory buffer
+in the constructor. As distinct from Dbt when assignment value 
+to UserMemDbt it will copied to buffer, not just referenced to dbt.data.
+UserMemDbt* pointer maybe casted to (Dbt*) and vice versa.
+
+BulkDbt/RecnoBulkDbt maybe used for bulk insert/get operations. 
+Both maybe casted to (Dbt*) but not vice versa. For back conversion
+use BulkDbt(ref Dbt dbt) and RecnoBulkDbt(ref Dbt dbt) constructors.
+For examples see unittests in the berkeleydb/dbt.d
+
+For example of using library see transactions_test directory
+
+Bugs of library:
+1) Interface sometimes maybe not consistent. For example
+   sometimes translate pointer to ref-argument, and sometimes leave it
+   as pointer.
+2) Some functions like DbEnv.memp_stat seems may be reasons of
+   memory leaks.
+3) If for Db close called explicitly, but for cursor Dbc not called before,
+   it will called implicitly in the destructor and will cause of an error. 

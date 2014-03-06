@@ -1,0 +1,27 @@
+Example of usage BerkeleyDb library for D.
+
+In the directory there is 2 programms: reader.d and writer.d
+It is example of working transaction system of BerkeleyDb.
+To build you need change path to BerkeleyDb sources in the config.sh.
+The BerkeleyDb sourecs must be built. To build BDB enough in the build_unix
+directry run:
+$ ../dist/configure
+$ make
+After that you can build reader&writer programms:
+$ ./build.sh
+
+reader open transaction, and for 5 seconds reads 5 times the number from the
+database and print it to console, closes the transaction and the loop repeats 
+again.
+writer opens transaction and in series writes to the DB on the place of 
+the number values from 1 to 10, after that the transaction closes and after
+a second the loop repeats with numbers from 11 to 20 and so on.
+
+At the first you need run reader, after that (without stopping reader)
+in another console writer.
+
+As result reader never reads numbers not divisible by 10, so as all numbers
+writes in one transaction of writer. But also so as 5 seconds reader is in
+one transaction, it skips 50 changes of the number value. So on screen
+you will see e.g. 5 running numbers 20, after that 70, 120, 170...
+
