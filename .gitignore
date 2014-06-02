@@ -1,0 +1,5 @@
+*.swp
+transactions_test/reader
+transactions_test/reader.o
+transactions_test/writer
+transactions_test/writer.o
