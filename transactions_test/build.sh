@@ -7,5 +7,5 @@
         exit 0
     }
 
-dmd -g -unittest reader.d ../berkeleydb/*.d ~/Programs/db-6.0.20.NC/build_unix/libdb.a
-dmd -g -unittest writer.d ../berkeleydb/*.d ~/Programs/db-6.0.20.NC/build_unix/libdb.a
+dmd -g -unittest reader.d ../berkeleydb/*.d $BDBPATH/build_unix/libdb.a
+dmd -g -unittest writer.d ../berkeleydb/*.d $BDBPATH/build_unix/libdb.a
