@@ -26,7 +26,7 @@ import std.array;
 import std.traits;
 import core.memory;
 
-private inout ubyte[] tobytes(T)(inout ref T arg)
+private inout(ubyte[]) tobytes(T)(inout ref T arg)
 if (__traits(hasMember, arg, "sizeof"))
 {
 
@@ -42,7 +42,7 @@ if (__traits(hasMember, arg, "sizeof"))
 	}
 }
 
-private inout T frombytes(T)(inout ubyte[] arg)
+private inout(T) frombytes(T)(inout ubyte[] arg)
 if (!isPointer!(T) && !isArray!(T) &&
 		__traits(hasMember, T, "sizeof") &&
 		!__traits(hasMember, T, "ptr"))
@@ -54,7 +54,7 @@ if (!isPointer!(T) && !isArray!(T) &&
 	return *res;
 }
 
-private inout T* frombytes(A: T*, T)(inout ubyte[] arg)
+private inout(T*) frombytes(A: T*, T)(inout ubyte[] arg)
 if (__traits(hasMember, T, "sizeof") &&
 		!__traits(hasMember, T, "ptr"))
 {
@@ -62,7 +62,7 @@ if (__traits(hasMember, T, "sizeof") &&
 	return cast(T*) arg;
 }
 
-private inout T[] frombytes(A : T[], T)(inout ubyte[] arg)
+private inout(T[]) frombytes(A : T[], T)(inout ubyte[] arg)
 if (__traits(hasMember, T, "sizeof"))
 {
 	assert((arg.length % T.sizeof) == 0, "Casting Dbt to array with not corresponding entries size");
@@ -70,9 +70,9 @@ if (__traits(hasMember, T, "sizeof"))
 	return (cast(T*)arg)[0..arg.length/T.sizeof];
 }
 
-private inout ubyte[] dbttobytes(inout ref DBT dbt)
+private inout(ubyte[]) dbttobytes(inout ref DBT dbt)
 {
-	return (cast(ubyte*)dbt.data)[0..dbt.size];
+	return (cast(inout ubyte*)dbt.data)[0..dbt.size];
 }
 
 struct Dbt
@@ -98,6 +98,11 @@ struct Dbt
 			size = arg.sizeof;
 			data = cast(void*) &arg;
 		}
+	}
+
+	T to(T)()
+	{
+		return frombytes!T(dbttobytes(dbt));
 	}
 
 	T to(T)() const
@@ -218,6 +223,11 @@ struct UserMemDbt
 			(cast(char*) data)[0..size] = 
 				(cast(char*) &arg)[0..size];
 		}
+	}
+
+	T to(T)()
+	{
+		return frombytes!T(dbttobytes(dbt));
 	}
 
 	T to(T)() const

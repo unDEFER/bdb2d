@@ -1551,7 +1551,7 @@ unittest
             * this case, the DB_DBT_APPMALLOC flag should be set in the
             * secondary key DBT.
             */
-           order *o = pdata.to!(order *)();
+           const order *o = pdata.to!(const order *)();
            skey = o.cust_id;
            return 0;
     }

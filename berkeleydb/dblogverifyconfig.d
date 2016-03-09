@@ -24,7 +24,7 @@ import berkeleydb.c;
 
 import std.stdint;
 import std.string;
-import std.c.linux.pthread;
+import core.sys.posix.pthread;
 
 alias DB_LOG_VERIFY_CONFIG DbLogVerifyConfig;
 

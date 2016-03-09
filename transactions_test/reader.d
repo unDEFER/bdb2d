@@ -42,8 +42,8 @@ void main()
                 DB_INIT_TXN  | /* Initialize transactions */
                 DB_INIT_LOCK | /* Initialize locking. */
                 DB_INIT_LOG  | /* Initialize logging */
-                DB_INIT_MPOOL|
-                DB_RECOVER; /* Initialize the in-memory cache. */
+                DB_INIT_MPOOL| /* Initialize the in-memory cache. */
+                DB_RECOVER;
 
     dbenv.open("/tmp/berkeleydb.locks/", env_flags, octal!666);
 

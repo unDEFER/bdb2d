@@ -37,7 +37,7 @@ import std.string;
 import std.conv;
 import std.array;
 import std.format;
-import std.c.linux.pthread;
+import core.sys.posix.pthread;
 
 alias DB_MEM_CONFIG DbMemConfig;
 alias DB_LOCK DbLock;
