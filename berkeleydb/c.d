@@ -1,7 +1,7 @@
 /*
  * See the file LICENSE for redistribution information.
  *
- * Copyright (c) 1996, 2013 Oracle and/or its affiliates.  All rights reserved.
+ * Copyright (c) 1996, 2015 Oracle and/or its affiliates.  All rights reserved.
  *
  * $Id$
  *
@@ -23,10 +23,10 @@ module berkeleydb.c;
 import core.stdc.inttypes;
 import core.stdc.config;
 import std.stdint;
-import std.c.stddef;
-import std.c.stdio;
+import core.stdc.stddef;
+import core.stdc.stdio;
 import std.file;
-import std.c.linux.pthread;
+import core.sys.posix.pthread;
 
 extern (C) {
 
@@ -110,9 +110,9 @@ alias	uint16_t	db_indx_t;	/* Page offset type. */
 enum	DB_MAX_PAGES	= 0xffffffff;	/* >= # of pages in a file */
 
 alias	uint32_t	db_recno_t;	/* Record number type. */
-enum	DB_MAX_RECORDS	= 0xffffffff;	/* >= # of records in a tree */
+enum	DB_MAX_RECORDS	= 0xffffffff;	/* >= # of records in a recno tree. */
 
-alias uint32_t	db_timeout_t;	/* Type of a timeout. */
+alias uint32_t	db_timeout_t;	/* Type of a timeout in microseconds. */
 
 /*
  * Region offsets are the difference between a pointer in a region and the
@@ -136,6 +136,10 @@ alias __db_compact DB_COMPACT;
 alias __db_dbt DBT;
 alias __db_distab DB_DISTAB;
 alias __db_env DB_ENV;
+
+	alias __db_event_mutex_died_info DB_EVENT_MUTEX_DIED_INFO;
+
+	alias __db_event_failchk_info DB_EVENT_FAILCHK_INFO;
 alias __db_h_stat DB_HASH_STAT;
 alias __db_heap_rid DB_HEAP_RID;
 alias __db_heap_stat DB_HEAP_STAT;
@@ -266,6 +270,23 @@ else
 }
 };
 
+/* Buffers passed to __mutex_describe() must be at least this large. */
+enum	DB_MUTEX_DESCRIBE_STRLEN	= 128;
+
+/* This is the info of a DB_EVENT_MUTEX_DIED event notification. */
+struct __db_event_mutex_died_info {
+	pid_t         pid;	/* Process which last owned the mutex */
+	db_threadid_t tid;	/* Thread which last owned the mutex */
+	db_mutex_t    mutex;	/* ID of the mutex */
+	char	      desc[DB_MUTEX_DESCRIBE_STRLEN];
+};
+
+/* This is the info of a DB_EVENT_FAILCHK event notification. */
+enum DB_FAILURE_SYMPTOM_SIZE	= 120;
+struct __db_event_failchk_info {
+	int	error;
+	char	symptom[DB_FAILURE_SYMPTOM_SIZE];
+};
 /* This is the length of the buffer passed to DB_ENV.thread_id_string() */
 enum	DB_THREADID_STRLEN	= 128;
 
@@ -471,7 +492,7 @@ struct __db_lockreq {
 /*******************************************************
  * Logging.
  *******************************************************/
-enum	DB_LOGVERSION	= 20;		/* Current log version. */
+enum	DB_LOGVERSION	= 22;		/* Current log version. */
 enum	DB_LOGVERSION_LATCHING = 15;	/* Log version using latching: db-4.8 */
 enum	DB_LOGCHKSUM	= 12;		/* Check sum headers: db-4.5 */
 enum	DB_LOGOLDVER	= 8;		/* Oldest version supported: db-4.2 */
@@ -605,7 +626,8 @@ enum {
 	LOGREC_PGDDBT,
 	LOGREC_PGLIST,
 	LOGREC_POINTER,
-	LOGREC_TIME
+	LOGREC_TIME,
+	LOGREC_LONGARG
 }
 alias int log_rec_type_t;
 
@@ -1003,7 +1025,7 @@ enum	TXN_RESTORED		= 0x04000;	/* Txn has been restored. */
 enum	TXN_SNAPSHOT		= 0x08000;	/* Snapshot Isolation. */
 enum	TXN_SYNC		= 0x10000;	/* Write and sync on prepare/commit. */
 enum	TXN_WRITE_NOSYNC	= 0x20000;	/* Write only on prepare/commit. */
-enum TXN_BULK		= 0x40000; /* Enable bulk loading optimization. */
+enum	TXN_BULK		= 0x40000; /* Enable bulk loading optimization. */
 
 enum TXN_SYNC_FLAGS = TXN_SYNC | TXN_NOSYNC | TXN_WRITE_NOSYNC;
 
@@ -1115,31 +1137,34 @@ enum	DB_REP_LEASE_TIMEOUT		= 9;	/* Master leases. */
 
 /*
  * Event notification types.  (Tcl testing interface currently assumes there are
- * no more than 32 of these.)
+ * no more than 32 of these.). Comments include any relevant event_info types.
  */
 enum	DB_EVENT_PANIC			 = 0;
-enum	DB_EVENT_REG_ALIVE		 = 1;
-enum	DB_EVENT_REG_PANIC		 = 2;
+enum	DB_EVENT_REG_ALIVE		 = 1;	/* int: pid which was in env */
+enum	DB_EVENT_REG_PANIC		 = 2;	/* int: error causing the panic. */
 enum	DB_EVENT_REP_AUTOTAKEOVER_FAILED = 3;
 enum	DB_EVENT_REP_CLIENT		 = 4;
-enum	DB_EVENT_REP_CONNECT_BROKEN	 = 5;
-enum	DB_EVENT_REP_CONNECT_ESTD	 = 6;
-enum	DB_EVENT_REP_CONNECT_TRY_FAILED	 = 7;
+enum	DB_EVENT_REP_CONNECT_BROKEN	 = 5;	/* DB_REPMGR_CONN_ERR */
+enum	DB_EVENT_REP_CONNECT_ESTD	 = 6;	/* int: EID of remote site */
+enum	DB_EVENT_REP_CONNECT_TRY_FAILED	 = 7;	/* DB_REPMGR_CONN_ERR */
 enum	DB_EVENT_REP_DUPMASTER		 = 8;
 enum	DB_EVENT_REP_ELECTED		 = 9;
 enum	DB_EVENT_REP_ELECTION_FAILED	= 10;
 enum	DB_EVENT_REP_INIT_DONE		= 11;
-enum	DB_EVENT_REP_JOIN_FAILURE	= 12;
-enum	DB_EVENT_REP_LOCAL_SITE_REMOVED	= 13;
-enum	DB_EVENT_REP_MASTER		= 14;
-enum	DB_EVENT_REP_MASTER_FAILURE	= 15;
-enum	DB_EVENT_REP_NEWMASTER		= 16;
-enum	DB_EVENT_REP_PERM_FAILED	= 17;
-enum	DB_EVENT_REP_SITE_ADDED		= 18;
-enum	DB_EVENT_REP_SITE_REMOVED	= 19;
-enum	DB_EVENT_REP_STARTUPDONE	= 20;
-enum	DB_EVENT_REP_WOULD_ROLLBACK	= 21;	/* Undocumented; C API only. */
-enum	DB_EVENT_WRITE_FAILED		= 22;
+enum	DB_EVENT_REP_INQUEUE_FULL	= 12;
+enum	DB_EVENT_REP_JOIN_FAILURE	= 13;
+enum	DB_EVENT_REP_LOCAL_SITE_REMOVED	= 14;
+enum	DB_EVENT_REP_MASTER		= 15;
+enum	DB_EVENT_REP_MASTER_FAILURE	= 16;
+enum	DB_EVENT_REP_NEWMASTER		= 17;	/* int: new master's site id */
+enum	DB_EVENT_REP_PERM_FAILED	= 18;
+enum	DB_EVENT_REP_SITE_ADDED		= 19;	/* int: eid */
+enum	DB_EVENT_REP_SITE_REMOVED	= 20;	/* int: eid */
+enum	DB_EVENT_REP_STARTUPDONE	= 21;
+enum	DB_EVENT_REP_WOULD_ROLLBACK	= 22;	/* Undocumented; C API only. */
+enum	DB_EVENT_WRITE_FAILED		= 23;
+enum	DB_EVENT_MUTEX_DIED		= 24;	/* DB_EVENT_MUTEX_DIED_INFO */
+enum	DB_EVENT_FAILCHK_PANIC		= 25;	/* DB_EVENT_FAILCHK_INFO */
 enum	DB_EVENT_NO_SUCH_EVENT		 = 0xffffffff; /* OOB sentinel value */
 
 /* Replication Manager site status. */
@@ -1264,6 +1289,10 @@ struct __db_repmgr_stat { /* SHARED */
 	uintmax_t st_msgs_queued;	/* # msgs queued for network delay. */
 	uintmax_t st_msgs_dropped;	/* # msgs discarded due to excessive
 					   queue length. */
+	uint32_t st_incoming_queue_gbytes;	/* Incoming queue size: GB. */
+	uint32_t st_incoming_queue_bytes;	/* Incoming queue size: B. */
+	uintmax_t st_incoming_msgs_dropped;	/* # of msgs discarded due to
+						   incoming queue full. */
 	uintmax_t st_connection_drop;	/* Existing connections dropped. */
 	uintmax_t st_connect_fail;	/* Failed new connection attempts. */
 	uint32_t st_elect_threads;	/* # of active election threads. */
@@ -1272,7 +1301,6 @@ struct __db_repmgr_stat { /* SHARED */
 	uint32_t st_site_total;	/* # of repgroup total sites. */
 	uint32_t st_site_views;	/* # of repgroup view sites. */
 	uintmax_t st_takeovers;		/* # of automatic listener takeovers. */
-	uint32_t st_incoming_queue_size; /* Undoc: # msgs currently queued. */
 };
 
 /* Replication Manager connection error. */
@@ -1366,15 +1394,15 @@ alias int DBTYPE;
 
 enum	DB_RENAMEMAGIC	= 0x030800;	/* File has been renamed. */
 
-enum	DB_BTREEVERSION	= 9;		/* Current btree version. */
+enum	DB_BTREEVERSION	= 10;		/* Current btree version. */
 enum	DB_BTREEOLDVER	= 8;		/* Oldest btree version supported. */
 enum	DB_BTREEMAGIC	= 0x053162;
 
-enum	DB_HASHVERSION	= 9;		/* Current hash version. */
+enum	DB_HASHVERSION	= 10;		/* Current hash version. */
 enum	DB_HASHOLDVER	= 7;		/* Oldest hash version supported. */
 enum	DB_HASHMAGIC	= 0x061561;
 
-enum	DB_HEAPVERSION	= 1;		/* Current heap version. */
+enum	DB_HEAPVERSION	= 2;		/* Current heap version. */
 enum	DB_HEAPOLDVER	= 1;		/* Oldest heap version supported. */
 enum	DB_HEAPMAGIC	= 0x074582;
 
@@ -1443,6 +1471,7 @@ enum	DB_LOCK_DEADLOCK	= -30993;/* Deadlock. */
 enum	DB_LOCK_NOTGRANTED	= -30992;/* Lock unavailable. */
 enum	DB_LOG_BUFFER_FULL	= -30991;/* In-memory log buffer full. */
 enum	DB_LOG_VERIFY_BAD	= -30990;/* Log verification failed. */
+enum	DB_META_CHKSUM_FAIL	= -30968;/* Metadata page checksum failed. */
 enum	DB_NOSERVER		= -30989;/* Server panic return. */
 enum	DB_NOTFOUND		= -30988;/* Key/data pair not found (EOF). */
 enum	DB_OLD_VERSION		= -30987;/* Out-of-date version. */
@@ -1471,6 +1500,8 @@ enum	DB_CHKSUM_FAIL		= -30898;/* Checksum failed. */
 enum	DB_DELETED		= -30897;/* Recovery file marked deleted. */
 enum	DB_EVENT_NOT_HANDLED	= -30896;/* Forward event to application. */
 enum	DB_NEEDSPLIT		= -30895;/* Page needs to be split. */
+enum	DB_NOINTMP		= -30886;/* Sequences not supported in temporary
+					   or in-memory databases. */
 enum	DB_REP_BULKOVF		= -30894;/* Rep bulk buffer overflow. */
 enum	DB_REP_LOGREADY		= -30893;/* Rep log ready for recovery. */
 enum	DB_REP_NEWMASTER	= -30892;/* We have learned of a new master. */
@@ -1480,6 +1511,13 @@ enum	DB_SURPRISE_KID		= -30890;/* Child commit where parent
 enum	DB_SWAPBYTES		= -30889;/* Database needs byte swapping. */
 enum	DB_TXN_CKP		= -30888;/* Encountered ckp record in log. */
 enum	DB_VERIFY_FATAL		= -30887;/* DB.verify cannot proceed. */
+
+/*
+ * This exit status indicates that a BDB utility failed because it needed a
+ * resource which had been held by a process which crashed or otherwise did
+ * not exit cleanly.
+ */
+enum DB_EXIT_FAILCHK		= 3;
 
 /* Database handle. */
 struct __db {
@@ -1669,8 +1707,8 @@ struct __db {
 	DB		*blob_meta_db;	/* Databases holding blob metadata. */
 	DB_SEQUENCE	*blob_seq;	/* Sequence of blob ids. */
 	char		*blob_sub_dir;	/* Subdirectory for blob files */
-	uintmax_t	blob_file_id;	/* Id of the file blob directory. */
-	uintmax_t	blob_sdb_id;	/* Id of the subdb blob directory. */
+	db_seq_t	blob_file_id;	/* Id of the file blob directory. */
+	db_seq_t	blob_sdb_id;	/* Id of the subdb blob directory. */
 
 	/* API-private structure: used by DB 1.85, C++, Java, Perl and Tcl */
 	void	*api_internal;
@@ -1855,7 +1893,6 @@ struct __db {
 	uint32_t orig_flags;		   /* Flags at  open, for refresh */
 	uint32_t flags;
 
-	uint32_t orig_flags2;		   /* Second flags word; for refresh */ 
 	uint32_t flags2;		   /* Second flags word */
 };
 
@@ -1898,9 +1935,9 @@ enum	DB_AM_SUBDB		= 0x10000000; /* Subdatabases supported */
 enum	DB_AM_SWAP		= 0x20000000; /* Pages need to be byte-swapped */
 enum	DB_AM_TXN		= 0x40000000; /* Opened in a transaction */
 enum	DB_AM_VERIFYING		= 0x80000000; /* DB handle is in the verifier */
-enum DB2_AM_EXCL		= 0x00000001; /* Exclusively lock the handle */ 
-enum DB2_AM_INTEXCL		= 0x00000002; /* Internal exclusive lock. */
-enum DB2_AM_NOWAIT		= 0x00000004; /* Do not wait for handle lock */ 
+enum	DB2_AM_EXCL		= 0x00000001; /* Exclusively lock the handle */ 
+enum	DB2_AM_INTEXCL		= 0x00000002; /* Internal exclusive lock. */
+enum	DB2_AM_NOWAIT		= 0x00000004; /* Do not wait for handle lock */ 
 
 /* 
  * Stream interface for blob files.
@@ -1917,7 +1954,7 @@ struct __db_stream {
 	/* DB_STREAM PUBLIC HANDLE LIST END */
 
 	uint32_t	flags;
-	uintmax_t	blob_id;
+	db_seq_t	blob_id;
 	db_off_t	file_size;
 };
 
@@ -2431,12 +2468,6 @@ alias int DB_BACKUP_CONFIG;
 struct __db_env {
 	ENV *env;			/* Linked ENV structure */
 
-	/*
-	 * The DB_ENV structure can be used concurrently, so field access is
-	 * protected.
-	 */
-	db_mutex_t mtx_db_env;		/* DB_ENV structure mutex */
-
 					/* Error message callback */
 	void function (const (DB_ENV)* , const (char)* , const (char)* ) db_errcall;
 	FILE		*db_errfile;	/* Error message file stream */
@@ -2553,6 +2584,11 @@ struct __db_env {
 					 * build settings.
 					 */
         db_timeout_t	envreg_timeout; /* DB_REGISTER wait timeout */
+	/*
+	 * When failchk broadcasting is active, any wait for a mutex will wake
+	 * up this frequently in order to check whether the mutex has died.
+	 */
+	db_timeout_t	mutex_failchk_timeout;
 
 	uint32_t flags;
 
@@ -2591,8 +2627,8 @@ struct __db_env {
 		void function(const (DB_ENV)* , const (char)* , const (char)* )*) get_errcall;
 	void function (DB_ENV *, FILE **) get_errfile;
 	void function (DB_ENV *, const (char)* *) get_errpfx;
-	int  function (DB_ENV *, uint32_t *) get_flags;
 	int  function (DB_ENV *, void function(DB_ENV *, int, int)*) get_feedback;
+	int  function (DB_ENV *, uint32_t *) get_flags;
 	int  function (DB_ENV *, const (char)* *) get_home;
 	int  function (DB_ENV *, const (char)* *) get_intermediate_dir_mode;
 	int  function (DB_ENV *,
@@ -2833,7 +2869,7 @@ enum	DB_ENV_TXN_NOWAIT	= 0x00004000; /* DB_TXN_NOWAIT set */
 enum	DB_ENV_TXN_SNAPSHOT	= 0x00008000; /* DB_TXN_SNAPSHOT set */
 enum	DB_ENV_TXN_WRITE_NOSYNC	= 0x00010000; /* DB_TXN_WRITE_NOSYNC set */
 enum	DB_ENV_YIELDCPU		= 0x00020000; /* DB_YIELDCPU set */
-enum DB_ENV_NOFLUSH		= 0x00080000; /* DB_NOFLUSH set */
+enum	DB_ENV_NOFLUSH		= 0x00080000; /* DB_NOFLUSH set */
 
 /*
  * Dispatch structure for recovery, log verification and print routines. Since
@@ -3067,6 +3103,7 @@ enum	DB_FCNTL_LOCKING			= 0x00000800;
 enum	DB_FLUSH				= 0x00000002;
 enum	DB_FORCE				= 0x00000001;
 enum	DB_FORCESYNC				= 0x00000001;
+enum	DB_FORCESYNCENV				= 0x00000002;
 enum	DB_FOREIGN_ABORT			= 0x00000001;
 enum	DB_FOREIGN_CASCADE			= 0x00000002;
 enum	DB_FOREIGN_nullIFY			= 0x00000004;
@@ -3104,6 +3141,7 @@ enum	DB_LOG_COMMIT				= 0x00000004;
 enum	DB_LOG_DIRECT				= 0x00000004;
 enum	DB_LOG_DSYNC				= 0x00000008;
 enum	DB_LOG_NOCOPY				= 0x00000008;
+enum	DB_LOG_NOSYNC				= 0x00000020;
 enum	DB_LOG_NOT_DURABLE			= 0x00000010;
 enum	DB_LOG_NO_DATA				= 0x00000002;
 enum	DB_LOG_VERIFY_CAF			= 0x00000001;
@@ -3115,7 +3153,7 @@ enum	DB_LOG_VERIFY_PARTIAL			= 0x00000020;
 enum	DB_LOG_VERIFY_VERBOSE			= 0x00000040;
 enum	DB_LOG_VERIFY_WARNING			= 0x00000080;
 enum	DB_LOG_WRNOSYNC				= 0x00000020;
-enum	DB_LOG_ZERO				= 0x00000020;
+enum	DB_LOG_ZERO				= 0x00000040;
 enum	DB_MPOOL_CREATE				= 0x00000001;
 enum	DB_MPOOL_DIRTY				= 0x00000002;
 enum	DB_MPOOL_DISCARD			= 0x00000001;
@@ -3133,9 +3171,10 @@ enum	DB_MULTIVERSION				= 0x00000008;
 enum	DB_MUTEX_ALLOCATED			= 0x00000001;
 enum	DB_MUTEX_LOCKED				= 0x00000002;
 enum	DB_MUTEX_LOGICAL_LOCK			= 0x00000004;
+enum	DB_MUTEX_OWNER_DEAD			= 0x00000020;
 enum	DB_MUTEX_PROCESS_ONLY			= 0x00000008;
 enum	DB_MUTEX_SELF_BLOCK			= 0x00000010;
-enum	DB_MUTEX_SHARED				= 0x00000020;
+enum	DB_MUTEX_SHARED				= 0x00000040;
 enum	DB_NOERROR				= 0x00008000;
 enum	DB_NOFLUSH				= 0x00001000;
 enum	DB_NOLOCKING				= 0x00002000;
@@ -3165,17 +3204,20 @@ enum	DB_REGISTER				= 0x00040000;
 enum	DB_RENUMBER				= 0x00000080;
 enum	DB_REPMGR_CONF_2SITE_STRICT		= 0x00000001;
 enum	DB_REPMGR_CONF_ELECTIONS		= 0x00000002;
+enum	DB_REPMGR_CONF_PREFMAS_CLIENT		= 0x00000004;
+enum	DB_REPMGR_CONF_PREFMAS_MASTER		= 0x00000008;
 enum	DB_REPMGR_NEED_RESPONSE			= 0x00000001;
 enum	DB_REPMGR_PEER				= 0x00000010;
 enum	DB_REP_ANYWHERE				= 0x00000001;
 enum	DB_REP_CLIENT				= 0x00000001;
-enum	DB_REP_CONF_AUTOINIT			= 0x00000004;
-enum	DB_REP_CONF_AUTOROLLBACK		= 0x00000008;
-enum	DB_REP_CONF_BULK			= 0x00000010;
-enum	DB_REP_CONF_DELAYCLIENT			= 0x00000020;
-enum	DB_REP_CONF_INMEM			= 0x00000040;
-enum	DB_REP_CONF_LEASE			= 0x00000080;
-enum	DB_REP_CONF_NOWAIT			= 0x00000100;
+enum	DB_REP_CONF_AUTOINIT			= 0x00000010;
+enum	DB_REP_CONF_AUTOROLLBACK		= 0x00000020;
+enum	DB_REP_CONF_BULK			= 0x00000040;
+enum	DB_REP_CONF_DELAYCLIENT			= 0x00000080;
+enum	DB_REP_CONF_ELECT_LOGLENGTH		= 0x00000100;
+enum	DB_REP_CONF_INMEM			= 0x00000200;
+enum	DB_REP_CONF_LEASE			= 0x00000400;
+enum	DB_REP_CONF_NOWAIT			= 0x00000800;
 enum	DB_REP_ELECTION				= 0x00000004;
 enum	DB_REP_MASTER				= 0x00000002;
 enum	DB_REP_NOBUFFER				= 0x00000002;
@@ -3192,8 +3234,9 @@ enum	DB_SEQ_RANGE_SET			= 0x00000004;
 enum	DB_SEQ_WRAP				= 0x00000008;
 enum	DB_SEQ_WRAPPED				= 0x00000010;
 enum	DB_SET_LOCK_TIMEOUT			= 0x00000001;
-enum	DB_SET_REG_TIMEOUT			= 0x00000004;
-enum	DB_SET_TXN_NOW				= 0x00000008;
+enum	DB_SET_MUTEX_FAILCHK_TIMEOUT		= 0x00000004;
+enum	DB_SET_REG_TIMEOUT			= 0x00000008;
+enum	DB_SET_TXN_NOW				= 0x00000010;
 enum	DB_SET_TXN_TIMEOUT			= 0x00000002;
 enum	DB_SHALLOW_DUP				= 0x00000100;
 enum	DB_SNAPSHOT				= 0x00000200;

@@ -1,1 +1,1 @@
-BDBPATH=~/Programs/db-6.0.20.NC
+BDBPATH=~/Programs/db-6.1.26.NC
