@@ -34,12 +34,12 @@ extern (C) {
 /*
  * Berkeley DB version information.
  */
-const int DB_VERSION_FAMILY	= 11;
-const int DB_VERSION_RELEASE	= 2;
-const int DB_VERSION_MAJOR	= 5;
+const int DB_VERSION_FAMILY	= 12;
+const int DB_VERSION_RELEASE	= 1;
+const int DB_VERSION_MAJOR	= 6;
 const int DB_VERSION_MINOR	= 1;
-const int DB_VERSION_PATCH	= 25;
-string DB_VERSION_STRING	= "5.1.25";
+const int DB_VERSION_PATCH	= 26;
+string DB_VERSION_STRING	= "Berkeley DB 6.1.26: (June 16, 2015)";
 string DB_VERSION_FULL_STRING	= "";
 
 /*
