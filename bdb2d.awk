@@ -66,10 +66,10 @@ SKIP_PREDEFINES && /^(int|char|void) +[a-zA-Z0-9_]+\(((const )? *[A-Za-z]+ *\*?,
 	print "import core.stdc.config;"; 
     next }
 /@stdint_h_decl@/ { print "import std.stdint;"; next }
-/@stddef_h_decl@/ { print "import std.c.stddef;"; next }
-/#include <stdio.h>/ { print "import std.c.stdio;"; next }
+/@stddef_h_decl@/ { print "import core.stdc.stddef;"; next }
+/#include <stdio.h>/ { print "import core.stdc.stdio;"; next }
 /@unistd_h_decl@/ { print "import std.file;"; next }
-/@thread_h_decl@/ { print "import std.c.linux.pthread;"; next }
+/@thread_h_decl@/ { print "import core.sys.posix.pthread;"; next }
 ifndef_nsi==1 && /^#endif/ { ifndef_nsi=0; next }
 ifndef_nsi==1 { next }
 
