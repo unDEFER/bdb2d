@@ -6,11 +6,11 @@ This package provides 2 version of interface to BerkeleyDB library for D:
   BerkeleyDB headers and therefore easy maybe regenerated for new version
   BerkeleyDB. Also when D language changes there will small changes to
   fix this interface generation.
-  Already generated file for BerkeleyDB 6.0.20.NC maybe found at 
+  Already generated file for BerkeleyDB 6.1.26.NC maybe found at 
   "berkeleydb/c.d" file.
   Generator - AWK-program bdb2d.awk.
   To regenerate interface enough to change in the config.sh script path
-  to Berkeleydb sources from "~/Programs/db-6.0.20.NC" to your
+  to Berkeleydb sources from "~/Programs/db-6.1.26.NC" to your
   path. After that run "./bdb2d.sh"
 
 - The second version tries to be more like D-interface. 
