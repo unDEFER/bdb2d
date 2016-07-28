@@ -2011,7 +2011,7 @@ auto DB_MULTIPLE_NEXT(T, U, Q, R)(T pointer, U dbt, Q retdata, R retdlen)
 }
 
 
-auto DB_MULTIPLE_KEY_NEXT(T, U, Q, R, S, )(T pointer, U dbt, Q retkey, R retklen, S retdata,  retdlen)
+auto DB_MULTIPLE_KEY_NEXT(T, U, Q, R, S, P)(T pointer, U dbt, Q retkey, R retklen, S retdata, P retdlen)
 {
 	do {
 		uint32_t *__p = cast(uint32_t)(pointer);
@@ -2093,7 +2093,7 @@ auto DB_MULTIPLE_WRITE_NEXT(T, U, Q, R)(T pointer, U dbt, Q writedata, R writedl
 }
 
 
-auto DB_MULTIPLE_KEY_RESERVE_NEXT(T, U, Q, R, S, )(T pointer, U dbt, Q writekey, R writeklen, S writedata,  writedlen)
+auto DB_MULTIPLE_KEY_RESERVE_NEXT(T, U, Q, R, S, P)(T pointer, U dbt, Q writekey, R writeklen, S writedata, P writedlen)
 {
 	do {
 		uint32_t *__p = cast(uint32_t)(pointer);
@@ -2119,7 +2119,7 @@ auto DB_MULTIPLE_KEY_RESERVE_NEXT(T, U, Q, R, S, )(T pointer, U dbt, Q writekey,
 }
 
 
-auto DB_MULTIPLE_KEY_WRITE_NEXT(T, U, Q, R, S, )(T pointer, U dbt, Q writekey, R writeklen, S writedata,  writedlen)
+auto DB_MULTIPLE_KEY_WRITE_NEXT(T, U, Q, R, S, P)(T pointer, U dbt, Q writekey, R writeklen, S writedata, P writedlen)
 {
 	do {
 		void* __destk, __destd;

@@ -19,9 +19,10 @@
 BEGIN { comment=0; 
 	types_ar[0]="T";
 	types_ar[1]="U";
-       	types_ar[2]="Q";
-       	types_ar[3]="R";
-       	types_ar[4]="S";
+	types_ar[2]="Q";
+	types_ar[3]="R";
+	types_ar[4]="S";
+	types_ar[5]="P";
 	brackets = 0;
 	func_header = 0;
 	funcs = 0;
