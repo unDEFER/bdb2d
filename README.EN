@@ -41,15 +41,15 @@ Interfaces of classes repeats BDB interfaces but follows then next ideas:
    not error codes (DB_KEYEMPTY, DB_NOTFOUND etc.). Full list of such functions maybe
    found in the implementation of "DbRetCodeToException" function
    (berkeleydb/dbexception.d file)
-5) Of course the first argument - pointer to the class is hidden
-   (for example DB_ENV *dbenv in the example of 6-th item)
-6) When function returns the single value, pointer argument turns
+6) Of course the first argument - pointer to the class is hidden
+   (for example DB_ENV *dbenv in the example of 7-th item)
+7) When function returns the single value, pointer argument turns
    to return value. For example the function
    int DB_ENV->get_open_flags(DB_ENV *dbenv, u_int32_t *flagsp);
    turned to
    uint32_t DbEnv.get_open_flags()
    I.e. function now returns flags instead of error code
-7) Functions which gets or returns 2 arguments gbytes, bytes
+8) Functions which gets or returns 2 arguments gbytes, bytes
    have 2 interfaces: one like C-version with 2 arguments and
    the secon with one 64-bit bytes argument. For example:
    void DbEnv.set_memory_max(uint32_t gbytes, uint32_t bytes)
@@ -57,9 +57,9 @@ Interfaces of classes repeats BDB interfaces but follows then next ideas:
    and
    void DbEnv.get_memory_max(ref uint32_t gbytes, ref uint32_t bytes)
    uint64_t DbEnv.get_memory_max()
-8) Callbacks also uses D-arguments, for example "DbEnv" instead of "DB_ENV*",
+9) Callbacks also uses D-arguments, for example "DbEnv" instead of "DB_ENV*",
    string instead of char *, etc.
-9) The last flags argument maybe skipped if it equals zero.
+10) The last flags argument maybe skipped if it equals zero.
 
 Dbt structure with hidden methods declared as:
 

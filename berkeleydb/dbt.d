@@ -100,6 +100,7 @@ struct Dbt
 		}
 	}
 
+    /*FIXME: "T to(T)() const" now means "const(T) to(T)() const", but it was such not always */
 	T to(T)()
 	{
 		return frombytes!T(dbttobytes(dbt));
@@ -225,6 +226,7 @@ struct UserMemDbt
 		}
 	}
 
+    /*FIXME: "T to(T)() const" now means "const(T) to(T)() const", but it was such not always */
 	T to(T)()
 	{
 		return frombytes!T(dbttobytes(dbt));
