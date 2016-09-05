@@ -85,7 +85,7 @@ public:
 			throw new DbWrongUsingException("Operation on closed DbChannel");
 		}
 		auto ret = dbchannel.send_request(dbchannel, 
-                cast(DBT*)request.ptr, request.length,
+                cast(DBT*)request.ptr, cast(uint)request.length,
                 &response.dbt, timeout, flags);
 		DbRetCodeToException(ret, dbenv);
         assert(ret == 0);

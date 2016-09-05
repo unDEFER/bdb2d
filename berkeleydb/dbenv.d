@@ -21,6 +21,7 @@
 module berkeleydb.dbenv;
 
 import berkeleydb.c;
+import berkeleydb.db;
 import berkeleydb.dbexception;
 import berkeleydb.dbtxn;
 import berkeleydb.dbt;
@@ -38,6 +39,7 @@ import std.conv;
 import std.array;
 import std.format;
 import core.sys.posix.pthread;
+import std.container: SList;
 
 alias DB_MEM_CONFIG DbMemConfig;
 alias DB_LOCK DbLock;
@@ -73,10 +75,12 @@ private:
 package:
     @property DB_ENV *_DB_ENV() {return dbenv;}
     @property int _opened() {return opened;}
+    SList!Db _db_list;
 
 public:
 	this(uint32_t flags = 0)
 	{
+        _db_list = SList!Db();
 		auto ret = db_env_create(&dbenv, flags);
 		DbRetCodeToException(ret, this);
         dbenv_map[dbenv] = this;
@@ -85,13 +89,20 @@ public:
 
 	~this()
 	{
-		if (opened >= 0) close();
+		if (opened >= 0)
+        {
+            foreach (Db db; _db_list)
+                db.close();
+            _db_list = SList!Db.init;
+            close();
+        }
         dbenv_map.remove(dbenv);
 	}
 
 	static ~this()
 	{
         dbenv_map = null;
+        Db.db_map = null;
     }
 
     void open(string db_home, uint32_t flags, int mode)
@@ -1140,7 +1151,7 @@ public:
             throw new DbWrongUsingException("Lock operation on closed DbEnv");
         }
         DbLockreq *elist;
-        auto ret = dbenv.lock_vec(dbenv, locker, flags, list.ptr, list.length, &elist);
+        auto ret = dbenv.lock_vec(dbenv, locker, flags, list.ptr, cast(uint)list.length, &elist);
         if (ret && elist) DbRetCodeToException(ret, this, 
                 cast(Dbt*)elist.obj, elist.op, elist.mode, &elist.lock, cast(int)(elist-list.ptr));
         else DbRetCodeToException(ret, this);
