@@ -45,7 +45,7 @@ private:
 	DB *db = null;
 	DbEnv dbenv = null;
     int opened = 0;
-    package static Db[DB *] db_map;
+    static Db[DB *] db_map;
 
     static Db from_DB(const DB *_db)
     {
@@ -70,7 +70,6 @@ public:
         db_map[db] = this;
         this.dbenv = dbenv;
         assert(ret == 0);
-        dbenv._db_list.insertFront(this);
 	}
 
     ~this()
@@ -78,6 +77,11 @@ public:
 		if (opened >= 0) close();
         db_map.remove(db);
 	}
+
+    static ~this()
+	{
+        db_map = null;
+    }
 
     void open(DbTxn txnid, string file,
                 string database, DBTYPE type, uint32_t flags, int mode)
