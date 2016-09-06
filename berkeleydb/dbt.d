@@ -90,7 +90,7 @@ struct Dbt
 	{
 		static if(__traits(hasMember, arg, "ptr"))
 		{
-			size = arg.length * typeof(arg[0]).sizeof;
+			size = cast(uint) arg.length * typeof(arg[0]).sizeof;
 			data = cast(void*) arg.ptr;
 		}
 		else
