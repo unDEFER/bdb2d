@@ -20,6 +20,8 @@
 
 module berkeleydb.dbstream;
 
+version(VERSION_6)
+{
 import berkeleydb.c;
 import berkeleydb.dbexception;
 import berkeleydb.dbenv;
@@ -94,4 +96,5 @@ public:
 		DbRetCodeToException(ret, dbenv);
         assert(ret == 0);
     }
+}
 }

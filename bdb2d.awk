@@ -57,6 +57,7 @@ skip_getting_started_common==1 {next}
 /^#ifndef[ \t].*_IN_/ { next }
 /^#define[ \t].*_IN_/ { next }
 /^#endif[ \t].*_IN_/ { next }
+/^#undef[ \t].*/ { next }
 
 SKIP_PREDEFINES && /^(int|char|void) +[a-zA-Z0-9_]+\(((const )? *[A-Za-z]+ *\*?,?)+\)/  { next }
 
@@ -68,7 +69,17 @@ SKIP_PREDEFINES && /^(int|char|void) +[a-zA-Z0-9_]+\(((const )? *[A-Za-z]+ *\*?,
     next }
 /@stdint_h_decl@/ { print "import std.stdint;"; next }
 /@stddef_h_decl@/ { print "import core.stdc.stddef;"; next }
-/#include <stdio.h>/ { print "import core.stdc.stdio;"; next }
+/#include <stdio.h>/ { 
+	print "module berkeleydb.c;\n";
+	print "import core.stdc.inttypes;"; 
+	print "import core.stdc.config;"; 
+    print "import std.stdint;";
+    print "import core.stdc.stddef;";
+    print "import core.stdc.stdio;";
+    print "import std.file;";
+    print "import core.sys.posix.pthread;";
+    next 
+}
 /@unistd_h_decl@/ { print "import std.file;"; next }
 /@thread_h_decl@/ { print "import core.sys.posix.pthread;"; next }
 ifndef_nsi==1 && /^#endif/ { ifndef_nsi=0; next }
@@ -208,6 +219,8 @@ ifdef_mixed_size && /^#endif/ {
 /\<long\>/ { $0 = gensub(/\<long\>/, "c_long", "g"); }
 /char \*\*\[\]/ { $0 = gensub(/char \*\*\[\]/, "char ***", "g"); }
 
+/([A-Za-z0-9_]+ )?[A-Za-z0-9_]+[ \t]+[A-Za-z0-9_]+\[[A-Za-z0-9_]+\]/ { $0 = gensub(/([ \t]+[A-Za-z0-9_]+)(\[[A-Za-z0-9_]+\])/, "\\2\\1", "g"); }
+/fileid\[DB_FILE_ID_LEN\]/ {$0 = gensub(/fileid\[DB_FILE_ID_LEN\]/, "[DB_FILE_ID_LEN] fileid", "g"); } 
 /sizeof\(([a-zA-Z0-9_]+)\)/ { $0 = gensub(/sizeof\(([a-zA-Z0-9_]+)\)/, "\\1.sizeof", "g"); }
 /->/ { $0 = gensub(/->/, ".", "g"); }
 /const ([A-Za-z0-9_]+) \*/ { $0 = gensub(/const ([A-Za-z0-9_]+) \*/, "const (\\1)* ", "g"); }
@@ -600,6 +613,7 @@ define_start == 1 && /[^\\]$/ {
 	{
 		return_bracket = 0;
 		$0 = gensub(/\);[ \t]*$/, ";\n}\n", "g");
+		$0 = gensub(/;;/, ";", "g");
 	}
 	else
 	{
@@ -624,6 +638,10 @@ define_start == 1 {
 
 /dbfile, \*dbname;/ {
 		$0 = gensub(/dbfile, \*dbname;/, "dbfile, dbname;", "g");
+	}
+
+/;;/ {
+		$0 = gensub(/;;/, ";", "g");
 	}
 
 /function/ {print; next;}

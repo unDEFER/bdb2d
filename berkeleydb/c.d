@@ -1,7 +1,7 @@
 /*
  * See the file LICENSE for redistribution information.
  *
- * Copyright (c) 1996, 2015 Oracle and/or its affiliates.  All rights reserved.
+ * Copyright (c) 1996, 2013 Oracle and/or its affiliates.  All rights reserved.
  *
  * $Id$
  *
@@ -28,19 +28,25 @@ import core.stdc.stdio;
 import std.file;
 import core.sys.posix.pthread;
 
+
 extern (C) {
 
+
+auto __P(T)(T protos)
+{
+	return protos;
+}
 
 /*
  * Berkeley DB version information.
  */
-const int DB_VERSION_FAMILY	= 12;
-const int DB_VERSION_RELEASE	= 1;
-const int DB_VERSION_MAJOR	= 6;
-const int DB_VERSION_MINOR	= 1;
-const int DB_VERSION_PATCH	= 26;
-string DB_VERSION_STRING	= "Berkeley DB 6.1.26: (June 16, 2015)";
-string DB_VERSION_FULL_STRING	= "";
+enum	DB_VERSION_FAMILY	= 11;
+enum	DB_VERSION_RELEASE	= 2;
+enum	DB_VERSION_MAJOR	= 5;
+enum	DB_VERSION_MINOR	= 3;
+enum	DB_VERSION_PATCH	= 28;
+string	DB_VERSION_STRING	= "Berkeley DB 5.3.28: (September  9, 2013)";
+string	DB_VERSION_FULL_STRING	= "Berkeley DB 11g Release 2, library version 11.2.5.3.28: (September  9, 2013)";
 
 /*
  * !!!
@@ -55,6 +61,10 @@ string DB_VERSION_FULL_STRING	= "";
  * We also provide the standard uint, ulong etc., if they're not provided
  * by the system.
  */
+
+
+
+
 
 
 /*
@@ -76,7 +86,12 @@ string DB_VERSION_FULL_STRING	= "";
  * no unsigned type the same size as a pointer -- here's hoping.
  */
 
-alias int db_off_t;
+
+
+
+
+
+
 version(HAVE_MIXED_SIZE_ADDRESSING)
 {
 alias uint32_t db_size_t;
@@ -85,6 +100,7 @@ else
 {
 alias size_t db_size_t;
 }
+
 
 version(HAVE_MIXED_SIZE_ADDRESSING)
 {
@@ -96,10 +112,11 @@ alias ssize_t db_ssize_t;
 }
 
 
+
 /*
  * Sequences are only available on machines with 64-bit integral types.
  */
-alias int64_t db_seq_t;
+alias c_long db_seq_t;
 
 /* Thread and process identification. */
 alias pthread_t db_threadid_t;
@@ -110,9 +127,9 @@ alias	uint16_t	db_indx_t;	/* Page offset type. */
 enum	DB_MAX_PAGES	= 0xffffffff;	/* >= # of pages in a file */
 
 alias	uint32_t	db_recno_t;	/* Record number type. */
-enum	DB_MAX_RECORDS	= 0xffffffff;	/* >= # of records in a recno tree. */
+enum	DB_MAX_RECORDS	= 0xffffffff;	/* >= # of records in a tree */
 
-alias uint32_t	db_timeout_t;	/* Type of a timeout in microseconds. */
+alias uint32_t	db_timeout_t;	/* Type of a timeout. */
 
 /*
  * Region offsets are the difference between a pointer in a region and the
@@ -136,10 +153,6 @@ alias __db_compact DB_COMPACT;
 alias __db_dbt DBT;
 alias __db_distab DB_DISTAB;
 alias __db_env DB_ENV;
-
-	alias __db_event_mutex_died_info DB_EVENT_MUTEX_DIED_INFO;
-
-	alias __db_event_failchk_info DB_EVENT_FAILCHK_INFO;
 alias __db_h_stat DB_HASH_STAT;
 alias __db_heap_rid DB_HEAP_RID;
 alias __db_heap_stat DB_HEAP_STAT;
@@ -172,7 +185,6 @@ alias __db_repmgr_site DB_REPMGR_SITE;
 alias __db_repmgr_stat DB_REPMGR_STAT;
 alias __db_seq_record DB_SEQ_RECORD;
 alias __db_seq_stat DB_SEQUENCE_STAT;
-alias __db_stream DB_STREAM;
 alias __db_site DB_SITE;
 alias __db_sequence DB_SEQUENCE;
 struct __db_thread_info;alias __db_thread_info DB_THREAD_INFO;
@@ -214,20 +226,18 @@ struct __db_dbt {
 	uint32_t flags;
 };
 
-enum	DB_DBT_APPMALLOC	= 0x0001;	/* Callback allocated memory. */
-enum	DB_DBT_BULK		= 0x0002;	/* Internal: Insert if duplicate. */
-enum	DB_DBT_DUPOK		= 0x0004;	/* Internal: Insert if duplicate. */
-enum	DB_DBT_ISSET		= 0x0008;	/* Lower level calls set value. */
-enum	DB_DBT_MALLOC		= 0x0010;	/* Return in malloc'd memory. */
-enum	DB_DBT_MULTIPLE		= 0x0020;	/* References multiple records. */
-enum	DB_DBT_PARTIAL		= 0x0040;	/* Partial put/get. */
-enum	DB_DBT_REALLOC		= 0x0080;	/* Return in realloc'd memory. */
-enum	DB_DBT_READONLY		= 0x0100;	/* Readonly, don't update. */
-enum	DB_DBT_STREAMING	= 0x0200;	/* Internal: DBT is being streamed. */
-enum	DB_DBT_USERCOPY		= 0x0400;	/* Use the user-supplied callback. */
-enum	DB_DBT_USERMEM		= 0x0800;	/* Return in user's memory. */
-enum	DB_DBT_BLOB		= 0x1000;	/* Data item is a blob. */
-enum	DB_DBT_BLOB_REC		= 0x2000;	/* Internal: Blob database record. */
+enum	DB_DBT_APPMALLOC	= 0x001;	/* Callback allocated memory. */
+enum	DB_DBT_BULK		= 0x002;	/* Internal: Insert if duplicate. */
+enum	DB_DBT_DUPOK		= 0x004;	/* Internal: Insert if duplicate. */
+enum	DB_DBT_ISSET		= 0x008;	/* Lower level calls set value. */
+enum	DB_DBT_MALLOC		= 0x010;	/* Return in malloc'd memory. */
+enum	DB_DBT_MULTIPLE		= 0x020;	/* References multiple records. */
+enum	DB_DBT_PARTIAL		= 0x040;	/* Partial put/get. */
+enum	DB_DBT_REALLOC		= 0x080;	/* Return in realloc'd memory. */
+enum	DB_DBT_READONLY		= 0x100;	/* Readonly, don't update. */
+enum	DB_DBT_STREAMING	= 0x200;	/* Internal: DBT is being streamed. */
+enum	DB_DBT_USERCOPY		= 0x400;	/* Use the user-supplied callback. */
+enum	DB_DBT_USERMEM		= 0x800;	/* Return in user's memory. */
 
 /*******************************************************
  * Mutexes.
@@ -270,23 +280,6 @@ else
 }
 };
 
-/* Buffers passed to __mutex_describe() must be at least this large. */
-enum	DB_MUTEX_DESCRIBE_STRLEN	= 128;
-
-/* This is the info of a DB_EVENT_MUTEX_DIED event notification. */
-struct __db_event_mutex_died_info {
-	pid_t         pid;	/* Process which last owned the mutex */
-	db_threadid_t tid;	/* Thread which last owned the mutex */
-	db_mutex_t    mutex;	/* ID of the mutex */
-	char	      desc[DB_MUTEX_DESCRIBE_STRLEN];
-};
-
-/* This is the info of a DB_EVENT_FAILCHK event notification. */
-enum DB_FAILURE_SYMPTOM_SIZE	= 120;
-struct __db_event_failchk_info {
-	int	error;
-	char	symptom[DB_FAILURE_SYMPTOM_SIZE];
-};
 /* This is the length of the buffer passed to DB_ENV.thread_id_string() */
 enum	DB_THREADID_STRLEN	= 128;
 
@@ -420,8 +413,6 @@ else
 	uintmax_t st_lockers_nowait;	/* Locker lock granted without wait. */
 	uintmax_t st_region_wait;	/* Region lock granted after wait. */
 	uintmax_t st_region_nowait;	/* Region lock granted without wait. */
-	uintmax_t st_nlockers_hit;	/* Lockers found in thread info. */
-	uintmax_t st_nlockers_reused;	/* Lockers reallocated from thread info. */
 	uint32_t st_hash_len;		/* Max length of bucket. */
 	roff_t	  st_regsize;		/* Region size. */
 }
@@ -458,7 +449,7 @@ struct __db_lock_pstat { /* SHARED */
  */
 struct __db_ilock { /* SHARED */
 	db_pgno_t pgno;			/* Page being locked. */
-	uint8_t fileid[DB_FILE_ID_LEN];/* File id. */
+	uint8_t[DB_FILE_ID_LEN] fileid;/* File id. */
 	uint32_t type;			/* Type of lock. */
 };
 
@@ -492,7 +483,7 @@ struct __db_lockreq {
 /*******************************************************
  * Logging.
  *******************************************************/
-enum	DB_LOGVERSION	= 22;		/* Current log version. */
+enum	DB_LOGVERSION	= 19;		/* Current log version. */
 enum	DB_LOGVERSION_LATCHING = 15;	/* Log version using latching: db-4.8 */
 enum	DB_LOGCHKSUM	= 12;		/* Check sum headers: db-4.5 */
 enum	DB_LOGOLDVER	= 8;		/* Oldest version supported: db-4.2 */
@@ -605,7 +596,7 @@ else
  */
 auto DB_SET_TXN_LSNP(T, U, Q)(T txn, U blsnp, Q llsnp)
 {
-	return ((txn).set_txn_lsnp(txn, blsnp, llsnp));;
+	return ((txn).set_txn_lsnp(txn, blsnp, llsnp));
 }
 
 
@@ -626,8 +617,7 @@ enum {
 	LOGREC_PGDDBT,
 	LOGREC_PGLIST,
 	LOGREC_POINTER,
-	LOGREC_TIME,
-	LOGREC_LONGARG
+	LOGREC_TIME
 }
 alias int log_rec_type_t;
 
@@ -635,7 +625,7 @@ struct __log_rec_spec {
 	log_rec_type_t	type;
 	uint32_t	offset;
 	const char 	*name;
-	const char	fmt[4];
+	const char[4]	fmt;
 }
 alias __log_rec_spec DB_LOG_RECSPEC;
 
@@ -644,7 +634,7 @@ alias __log_rec_spec DB_LOG_RECSPEC;
  */
 auto LOG_DBT_SIZE(T)(T dbt)
 {
-	return (uint32_t.sizeof + ((dbt) == null ? 0 : (dbt).size));;
+	return (uint32_t.sizeof + ((dbt) == null ? 0 : (dbt).size));
 }
 
 
@@ -700,7 +690,7 @@ struct __db_mpoolfile {
 
 	uint32_t	clear_len;	/* Cleared length on created pages. */
 	uint8_t			/* Unique file ID. */
-			fileid[DB_FILE_ID_LEN];
+			[DB_FILE_ID_LEN] fileid;
 	int		ftype;		/* File type. */
 	int32_t		lsn_offset;	/* LSN offset in page. */
 	uint32_t	gbytes, bytes;	/* Maximum file size. */
@@ -799,7 +789,6 @@ else
 	uintmax_t st_mvcc_frozen;	/* Buffers frozen. */
 	uintmax_t st_mvcc_thawed;	/* Buffers thawed. */
 	uintmax_t st_mvcc_freed;	/* Frozen buffers freed. */
-	uintmax_t st_mvcc_reused;	/* Outdated invisible buffers reused. */
 	uintmax_t st_alloc;		/* Number of page allocations. */
 	uintmax_t st_alloc_buckets;	/* Buckets checked during allocation. */
 	uintmax_t st_alloc_max_buckets;/* Max checked during allocation. */
@@ -807,8 +796,6 @@ else
 	uintmax_t st_alloc_max_pages;	/* Max checked during allocation. */
 	uintmax_t st_io_wait;		/* Thread waited on buffer I/O. */
 	uintmax_t st_sync_interrupted;	/* Number of times sync interrupted. */
-	uint32_t st_oddfsize_detect;	/* Odd file size detected. */
-	uint32_t st_oddfsize_resolve;	/* Odd file size resolved. */
 	roff_t	  st_regsize;		/* Region size. */
 	roff_t	  st_regmax;		/* Region max. */
 }
@@ -1025,7 +1012,7 @@ enum	TXN_RESTORED		= 0x04000;	/* Txn has been restored. */
 enum	TXN_SNAPSHOT		= 0x08000;	/* Snapshot Isolation. */
 enum	TXN_SYNC		= 0x10000;	/* Write and sync on prepare/commit. */
 enum	TXN_WRITE_NOSYNC	= 0x20000;	/* Write only on prepare/commit. */
-enum	TXN_BULK		= 0x40000; /* Enable bulk loading optimization. */
+enum TXN_BULK		= 0x40000; /* Enable bulk loading optimization. */
 
 enum TXN_SYNC_FLAGS = TXN_SYNC | TXN_NOSYNC | TXN_WRITE_NOSYNC;
 
@@ -1037,7 +1024,7 @@ enum TXN_SYNC_FLAGS = TXN_SYNC | TXN_NOSYNC | TXN_WRITE_NOSYNC;
 enum	DB_GID_SIZE	= 128;
 struct __db_preplist {
 	DB_TXN	*txn;
-	uint8_t gid[DB_GID_SIZE];
+	uint8_t[DB_GID_SIZE] gid;
 };
 
 /* Transaction statistics structure. */
@@ -1058,8 +1045,8 @@ struct __db_txn_active {
 
 	uint32_t xa_status;		/* XA status */
 
-	uint8_t  gid[DB_GID_SIZE];	/* Global transaction ID */
-	char	  name[51];		/* 50 bytes of name, nul termination */
+	uint8_t[DB_GID_SIZE]  gid;	/* Global transaction ID */
+	char[51]	  name;		/* 50 bytes of name, nul termination */
 };
 
 enum	TXN_ABORTED		= 1;
@@ -1102,7 +1089,7 @@ else
 
 enum	DB_TXN_TOKEN_SIZE		= 20;
 struct __db_txn_token {
-	uint8_t buf[DB_TXN_TOKEN_SIZE];
+	uint8_t[DB_TXN_TOKEN_SIZE] buf;
 };
 
 /*******************************************************
@@ -1137,34 +1124,30 @@ enum	DB_REP_LEASE_TIMEOUT		= 9;	/* Master leases. */
 
 /*
  * Event notification types.  (Tcl testing interface currently assumes there are
- * no more than 32 of these.). Comments include any relevant event_info types.
+ * no more than 32 of these.)
  */
 enum	DB_EVENT_PANIC			 = 0;
-enum	DB_EVENT_REG_ALIVE		 = 1;	/* int: pid which was in env */
-enum	DB_EVENT_REG_PANIC		 = 2;	/* int: error causing the panic. */
-enum	DB_EVENT_REP_AUTOTAKEOVER_FAILED = 3;
-enum	DB_EVENT_REP_CLIENT		 = 4;
-enum	DB_EVENT_REP_CONNECT_BROKEN	 = 5;	/* DB_REPMGR_CONN_ERR */
-enum	DB_EVENT_REP_CONNECT_ESTD	 = 6;	/* int: EID of remote site */
-enum	DB_EVENT_REP_CONNECT_TRY_FAILED	 = 7;	/* DB_REPMGR_CONN_ERR */
-enum	DB_EVENT_REP_DUPMASTER		 = 8;
-enum	DB_EVENT_REP_ELECTED		 = 9;
-enum	DB_EVENT_REP_ELECTION_FAILED	= 10;
-enum	DB_EVENT_REP_INIT_DONE		= 11;
-enum	DB_EVENT_REP_INQUEUE_FULL	= 12;
-enum	DB_EVENT_REP_JOIN_FAILURE	= 13;
-enum	DB_EVENT_REP_LOCAL_SITE_REMOVED	= 14;
-enum	DB_EVENT_REP_MASTER		= 15;
-enum	DB_EVENT_REP_MASTER_FAILURE	= 16;
-enum	DB_EVENT_REP_NEWMASTER		= 17;	/* int: new master's site id */
-enum	DB_EVENT_REP_PERM_FAILED	= 18;
-enum	DB_EVENT_REP_SITE_ADDED		= 19;	/* int: eid */
-enum	DB_EVENT_REP_SITE_REMOVED	= 20;	/* int: eid */
-enum	DB_EVENT_REP_STARTUPDONE	= 21;
-enum	DB_EVENT_REP_WOULD_ROLLBACK	= 22;	/* Undocumented; C API only. */
-enum	DB_EVENT_WRITE_FAILED		= 23;
-enum	DB_EVENT_MUTEX_DIED		= 24;	/* DB_EVENT_MUTEX_DIED_INFO */
-enum	DB_EVENT_FAILCHK_PANIC		= 25;	/* DB_EVENT_FAILCHK_INFO */
+enum	DB_EVENT_REG_ALIVE		 = 1;
+enum	DB_EVENT_REG_PANIC		 = 2;
+enum	DB_EVENT_REP_CLIENT		 = 3;
+enum	DB_EVENT_REP_CONNECT_BROKEN	 = 4;
+enum	DB_EVENT_REP_CONNECT_ESTD	 = 5;
+enum	DB_EVENT_REP_CONNECT_TRY_FAILED	 = 6;
+enum	DB_EVENT_REP_DUPMASTER		 = 7;
+enum	DB_EVENT_REP_ELECTED		 = 8;
+enum	DB_EVENT_REP_ELECTION_FAILED	 = 9;
+enum	DB_EVENT_REP_INIT_DONE		= 10;
+enum	DB_EVENT_REP_JOIN_FAILURE	= 11;
+enum	DB_EVENT_REP_LOCAL_SITE_REMOVED	= 12;
+enum	DB_EVENT_REP_MASTER		= 13;
+enum	DB_EVENT_REP_MASTER_FAILURE	= 14;
+enum	DB_EVENT_REP_NEWMASTER		= 15;
+enum	DB_EVENT_REP_PERM_FAILED	= 16;
+enum	DB_EVENT_REP_SITE_ADDED		= 17;
+enum	DB_EVENT_REP_SITE_REMOVED	= 18;
+enum	DB_EVENT_REP_STARTUPDONE	= 19;
+enum	DB_EVENT_REP_WOULD_ROLLBACK	= 20;	/* Undocumented; C API only. */
+enum	DB_EVENT_WRITE_FAILED		= 21;
 enum	DB_EVENT_NO_SUCH_EVENT		 = 0xffffffff; /* OOB sentinel value */
 
 /* Replication Manager site status. */
@@ -1181,7 +1164,6 @@ struct __db_repmgr_site {
 enum	DB_REPMGR_CONNECTED	= 1;
 enum	DB_REPMGR_DISCONNECTED	= 2;
 enum	DB_REPMGR_ISPEER	= 0x01;
-enum	DB_REPMGR_ISVIEW	= 0x02;
 
 /* Replication statistics. */
 struct __db_rep_stat { /* SHARED */
@@ -1195,7 +1177,6 @@ struct __db_rep_stat { /* SHARED */
 	 * circumstances, garbaged).
 	 */
 	uint32_t st_startup_complete;	/* Site completed client sync-up. */
-	uint32_t st_view;		/* Site is a view. */
 version(TEST_DB_NO_STATISTICS)
 {
 }
@@ -1278,7 +1259,6 @@ else
 version(CONFIG_TEST)
 {
 	uint32_t st_filefail_cleanups;	/* # of FILE_FAIL cleanups done. */
-	uintmax_t st_log_futuredup;	/* Future log records that are dups. */
 }
 }
 };
@@ -1289,18 +1269,10 @@ struct __db_repmgr_stat { /* SHARED */
 	uintmax_t st_msgs_queued;	/* # msgs queued for network delay. */
 	uintmax_t st_msgs_dropped;	/* # msgs discarded due to excessive
 					   queue length. */
-	uint32_t st_incoming_queue_gbytes;	/* Incoming queue size: GB. */
-	uint32_t st_incoming_queue_bytes;	/* Incoming queue size: B. */
-	uintmax_t st_incoming_msgs_dropped;	/* # of msgs discarded due to
-						   incoming queue full. */
 	uintmax_t st_connection_drop;	/* Existing connections dropped. */
 	uintmax_t st_connect_fail;	/* Failed new connection attempts. */
-	uint32_t st_elect_threads;	/* # of active election threads. */
-	uint32_t st_max_elect_threads;	/* Max concurrent e-threads ever. */
-	uint32_t st_site_participants;	/* # of repgroup participant sites. */
-	uint32_t st_site_total;	/* # of repgroup total sites. */
-	uint32_t st_site_views;	/* # of repgroup view sites. */
-	uintmax_t st_takeovers;		/* # of automatic listener takeovers. */
+	uintmax_t st_elect_threads;	/* # of active election threads. */
+	uintmax_t st_max_elect_threads;	/* Max concurrent e-threads ever. */
 };
 
 /* Replication Manager connection error. */
@@ -1331,7 +1303,7 @@ struct __db_sequence {
 	db_mutex_t	mtx_seq;	/* Mutex if sequence is threaded. */
 	DB_SEQ_RECORD	*seq_rp;	/* Pointer to current data. */
 	DB_SEQ_RECORD	seq_record;	/* Data from DB_SEQUENCE. */
-	uint32_t	seq_cache_size; /* Number of values cached. */
+	int32_t		seq_cache_size; /* Number of values cached. */
 	db_seq_t	seq_last_value;	/* Last value cached. */
 	db_seq_t	seq_prev_value;	/* Last value returned. */
 	DBT		seq_key;	/* DBT pointing to sequence key. */
@@ -1343,8 +1315,8 @@ struct __db_sequence {
 	/* DB_SEQUENCE PUBLIC HANDLE LIST BEGIN */
 	int		function (DB_SEQUENCE *, uint32_t) close;
 	int		function (DB_SEQUENCE *,
-			      DB_TXN *, uint32_t, db_seq_t *, uint32_t) get;
-	int		function (DB_SEQUENCE *, uint32_t *) get_cachesize;
+			      DB_TXN *, int32_t, db_seq_t *, uint32_t) get;
+	int		function (DB_SEQUENCE *, int32_t *) get_cachesize;
 	int		function (DB_SEQUENCE *, DB **) get_db;
 	int		function (DB_SEQUENCE *, uint32_t *) get_flags;
 	int		function (DB_SEQUENCE *, DBT *) get_key;
@@ -1354,7 +1326,7 @@ struct __db_sequence {
 	int		function (DB_SEQUENCE *,
 			    DB_TXN *, DBT *, uint32_t) open;
 	int		function (DB_SEQUENCE *, DB_TXN *, uint32_t) remove;
-	int		function (DB_SEQUENCE *, uint32_t) set_cachesize;
+	int		function (DB_SEQUENCE *, int32_t) set_cachesize;
 	int		function (DB_SEQUENCE *, uint32_t) set_flags;
 	int		function (DB_SEQUENCE *, db_seq_t, db_seq_t) set_range;
 	int		function (DB_SEQUENCE *,
@@ -1371,7 +1343,7 @@ struct __db_seq_stat { /* SHARED */
 	db_seq_t  st_last_value;	/* Last cached value. */
 	db_seq_t  st_min;		/* Minimum value. */
 	db_seq_t  st_max;		/* Maximum value. */
-	uint32_t st_cache_size;	/* Cache size. */
+	int32_t   st_cache_size;	/* Cache size. */
 	uint32_t st_flags;		/* Flag value. */
 };
 
@@ -1394,15 +1366,15 @@ alias int DBTYPE;
 
 enum	DB_RENAMEMAGIC	= 0x030800;	/* File has been renamed. */
 
-enum	DB_BTREEVERSION	= 10;		/* Current btree version. */
+enum	DB_BTREEVERSION	= 9;		/* Current btree version. */
 enum	DB_BTREEOLDVER	= 8;		/* Oldest btree version supported. */
 enum	DB_BTREEMAGIC	= 0x053162;
 
-enum	DB_HASHVERSION	= 10;		/* Current hash version. */
+enum	DB_HASHVERSION	= 9;		/* Current hash version. */
 enum	DB_HASHOLDVER	= 7;		/* Oldest hash version supported. */
 enum	DB_HASHMAGIC	= 0x061561;
 
-enum	DB_HEAPVERSION	= 2;		/* Current heap version. */
+enum	DB_HEAPVERSION	= 1;		/* Current heap version. */
 enum	DB_HEAPOLDVER	= 1;		/* Oldest heap version supported. */
 enum	DB_HEAPMAGIC	= 0x074582;
 
@@ -1471,7 +1443,6 @@ enum	DB_LOCK_DEADLOCK	= -30993;/* Deadlock. */
 enum	DB_LOCK_NOTGRANTED	= -30992;/* Lock unavailable. */
 enum	DB_LOG_BUFFER_FULL	= -30991;/* In-memory log buffer full. */
 enum	DB_LOG_VERIFY_BAD	= -30990;/* Log verification failed. */
-enum	DB_META_CHKSUM_FAIL	= -30968;/* Metadata page checksum failed. */
 enum	DB_NOSERVER		= -30989;/* Server panic return. */
 enum	DB_NOTFOUND		= -30988;/* Key/data pair not found (EOF). */
 enum	DB_OLD_VERSION		= -30987;/* Out-of-date version. */
@@ -1500,8 +1471,6 @@ enum	DB_CHKSUM_FAIL		= -30898;/* Checksum failed. */
 enum	DB_DELETED		= -30897;/* Recovery file marked deleted. */
 enum	DB_EVENT_NOT_HANDLED	= -30896;/* Forward event to application. */
 enum	DB_NEEDSPLIT		= -30895;/* Page needs to be split. */
-enum	DB_NOINTMP		= -30886;/* Sequences not supported in temporary
-					   or in-memory databases. */
 enum	DB_REP_BULKOVF		= -30894;/* Rep bulk buffer overflow. */
 enum	DB_REP_LOGREADY		= -30893;/* Rep log ready for recovery. */
 enum	DB_REP_NEWMASTER	= -30892;/* We have learned of a new master. */
@@ -1511,13 +1480,6 @@ enum	DB_SURPRISE_KID		= -30890;/* Child commit where parent
 enum	DB_SWAPBYTES		= -30889;/* Database needs byte swapping. */
 enum	DB_TXN_CKP		= -30888;/* Encountered ckp record in log. */
 enum	DB_VERIFY_FATAL		= -30887;/* DB.verify cannot proceed. */
-
-/*
- * This exit status indicates that a BDB utility failed because it needed a
- * resource which had been held by a process which crashed or otherwise did
- * not exit cleanly.
- */
-enum DB_EXIT_FAILCHK		= 3;
 
 /* Database handle. */
 struct __db {
@@ -1530,7 +1492,7 @@ struct __db {
 					/* Callbacks. */
 	int function (DB *, DBT *, db_recno_t) db_append_recno;
 	void function (DB *, int, int) db_feedback;
-	int function (DB *, const (DBT)* , const (DBT)* , size_t *) dup_compare;
+	int function (DB *, const (DBT)* , const (DBT)* ) dup_compare;
 
 	void	*app_private;		/* Application-private handle. */
 
@@ -1550,11 +1512,9 @@ struct __db {
 	const (char)* dirname;		/* Directory of DB file. */
 	uint32_t open_flags;		/* Flags passed to DB.open. */
 
-	uint8_t fileid[DB_FILE_ID_LEN];/* File's unique ID for locking. */
+	uint8_t[DB_FILE_ID_LEN] fileid;/* File's unique ID for locking. */
 
 	uint32_t adj_fileid;		/* File's unique ID for curs. adj. */
-
-	uint32_t blob_threshold;	/* Blob threshold record size. */
 
 	FNAME *log_filename;		/* File's naming info for logging. */
 
@@ -1704,12 +1664,6 @@ struct __db {
 	/* Reference to foreign -- set in the secondary. */
 	DB      *s_foreign;
 
-	DB		*blob_meta_db;	/* Databases holding blob metadata. */
-	DB_SEQUENCE	*blob_seq;	/* Sequence of blob ids. */
-	char		*blob_sub_dir;	/* Subdirectory for blob files */
-	db_seq_t	blob_file_id;	/* Id of the file blob directory. */
-	db_seq_t	blob_sdb_id;	/* Id of the subdb blob directory. */
-
 	/* API-private structure: used by DB 1.85, C++, Java, Perl and Tcl */
 	void	*api_internal;
 
@@ -1740,11 +1694,8 @@ struct __db {
 		void *function(void *, size_t)*, void function(void *)*) get_alloc;
 	int  function (DB *, int function(DB *, DBT *, db_recno_t)*) get_append_recno;
 	int  function (DB *, uint32_t *) get_assoc_flags;
-	int  function (DB *, const (char)* *) get_blob_dir;
-	int  function (DB *, const (char)* *) get_blob_sub_dir;
-	int  function (DB *, uint32_t *) get_blob_threshold;
 	int  function
-		(DB *, int function(DB *, const (DBT)* , const (DBT)* , size_t *)*) get_bt_compare;
+		(DB *, int function(DB *, const (DBT)* , const (DBT)* )*) get_bt_compare;
 	int  function (DB *,
 		int function(DB *,
 		const (DBT)* , const (DBT)* , const (DBT)* , const (DBT)* , DBT *),
@@ -1757,7 +1708,7 @@ struct __db {
 	int  function (DB *, const (char)* *) get_create_dir;
 	int  function (DB *, const (char)* *, const (char)* *) get_dbname;
 	int  function
-		(DB *, int function(DB *, const (DBT)* , const (DBT)* , size_t *)*) get_dup_compare;
+		(DB *, int function(DB *, const (DBT)* , const (DBT)* )*) get_dup_compare;
 	int  function (DB *, uint32_t *) get_encrypt_flags;
 	DB_ENV *function (DB *) get_env;
 	void function (DB *,
@@ -1767,7 +1718,7 @@ struct __db {
 	int  function (DB *, void function(DB *, int, int)*) get_feedback;
 	int  function (DB *, uint32_t *) get_flags;
 	int  function
-		(DB *, int function(DB *, const (DBT)* , const (DBT)* , size_t *)*) get_h_compare;
+		(DB *, int function(DB *, const (DBT)* , const (DBT)* )*) get_h_compare;
 	int  function (DB *, uint32_t *) get_h_ffactor;
 	int  function
 		(DB *, uint32_t function(DB *, const (void)* , uint32_t)*) get_h_hash;
@@ -1808,10 +1759,8 @@ struct __db {
 	int  function (DB *, void *function(size_t),
 		void *function(void *, size_t), void function(void *)) set_alloc;
 	int  function (DB *, int function(DB *, DBT *, db_recno_t)) set_append_recno;
-	int  function (DB *, const (char)* ) set_blob_dir;
-	int  function (DB *, uint32_t, uint32_t) set_blob_threshold;
 	int  function
-		(DB *, int function(DB *, const (DBT)* , const (DBT)* , size_t *)) set_bt_compare;
+		(DB *, int function(DB *, const (DBT)* , const (DBT)* )) set_bt_compare;
 	int  function (DB *,
 		int function(DB *, const (DBT)* , const (DBT)* , const (DBT)* , const (DBT)* , DBT *),
 		int function(DB *, const (DBT)* , const (DBT)* , DBT *, DBT *, DBT *)) set_bt_compress;
@@ -1821,7 +1770,7 @@ struct __db {
 	int  function (DB *, uint32_t, uint32_t, int) set_cachesize;
 	int  function (DB *, const (char)* ) set_create_dir;
 	int  function
-		(DB *, int function(DB *, const (DBT)* , const (DBT)* , size_t *)) set_dup_compare;
+		(DB *, int function(DB *, const (DBT)* , const (DBT)* )) set_dup_compare;
 	int  function (DB *, const (char)* , uint32_t) set_encrypt;
 	void function (DB *,
 		void function(const (DB_ENV)* , const (char)* , const (char)* )) set_errcall;
@@ -1830,7 +1779,7 @@ struct __db {
 	int  function (DB *, void function(DB *, int, int)) set_feedback;
 	int  function (DB *, uint32_t) set_flags;
 	int  function
-		(DB *, int function(DB *, const (DBT)* , const (DBT)* , size_t *)) set_h_compare;
+		(DB *, int function(DB *, const (DBT)* , const (DBT)* )) set_h_compare;
 	int  function (DB *, uint32_t) set_h_ffactor;
 	int  function
 		(DB *, uint32_t function(DB *, const (void)* , uint32_t)) set_h_hash;
@@ -1893,6 +1842,7 @@ struct __db {
 	uint32_t orig_flags;		   /* Flags at  open, for refresh */
 	uint32_t flags;
 
+	uint32_t orig_flags2;		   /* Second flags word; for refresh */ 
 	uint32_t flags2;		   /* Second flags word */
 };
 
@@ -1935,32 +1885,9 @@ enum	DB_AM_SUBDB		= 0x10000000; /* Subdatabases supported */
 enum	DB_AM_SWAP		= 0x20000000; /* Pages need to be byte-swapped */
 enum	DB_AM_TXN		= 0x40000000; /* Opened in a transaction */
 enum	DB_AM_VERIFYING		= 0x80000000; /* DB handle is in the verifier */
-enum	DB2_AM_EXCL		= 0x00000001; /* Exclusively lock the handle */ 
-enum	DB2_AM_INTEXCL		= 0x00000002; /* Internal exclusive lock. */
-enum	DB2_AM_NOWAIT		= 0x00000004; /* Do not wait for handle lock */ 
-
-/* 
- * Stream interface for blob files.
- */
-struct __db_stream {
-	DBC		*dbc;	/* Cursor pointing to the db blob record. */
-	DB_FH		*fhp;
-
-	/* DB_STREAM PUBLIC HANDLE LIST BEGIN */
-	int  function (DB_STREAM *, uint32_t) close;
-	int  function (DB_STREAM *, DBT *, db_off_t, uint32_t, uint32_t) read;
-	int  function (DB_STREAM *, db_off_t *, uint32_t) size;
-	int  function (DB_STREAM *, DBT *, db_off_t, uint32_t) write;
-	/* DB_STREAM PUBLIC HANDLE LIST END */
-
-	uint32_t	flags;
-	db_seq_t	blob_id;
-	db_off_t	file_size;
-};
-
-enum	DB_STREAM_READ		= 0x00000001; /* Stream is read only. */
-enum	DB_STREAM_WRITE		= 0x00000002; /* Stream is writeable. */
-enum	DB_STREAM_SYNC_WRITE	= 0x00000004; /* Sync file on each write. */
+enum DB2_AM_EXCL		= 0x00000001; /* Exclusively lock the handle */ 
+enum DB2_AM_INTEXCL		= 0x00000002; /* Internal exclusive lock. */
+enum DB2_AM_NOWAIT		= 0x00000004; /* Do not wait for handle lock */ 
 
 /*
  * Macros for bulk operations.  These are only intended for the C API.
@@ -2259,7 +2186,6 @@ struct __dbc {
 	int function (DBC *) close;
 	int function (DBC *, DBC *, int *, uint32_t) cmp;
 	int function (DBC *, db_recno_t *, uint32_t) count;
-	int function (DBC *, DB_STREAM **, uint32_t) db_stream;
 	int function (DBC *, uint32_t) del;
 	int function (DBC *, DBC **, uint32_t) dup;
 	int function (DBC *, DBT *, DBT *, uint32_t) get;
@@ -2338,7 +2264,6 @@ struct __db_bt_stat { /* SHARED */
 	uint32_t bt_pagecnt;		/* Page count. */
 	uint32_t bt_pagesize;		/* Page size. */
 	uint32_t bt_minkey;		/* Minkey value. */
-	uint32_t bt_nblobs;		/* Number of blobs. */
 	uint32_t bt_re_len;		/* Fixed-length record length. */
 	uint32_t bt_re_pad;		/* Fixed-length record pad. */
 	uint32_t bt_levels;		/* Tree levels. */
@@ -2377,7 +2302,6 @@ struct __db_h_stat { /* SHARED */
 	uint32_t hash_metaflags;	/* Metadata flags. */
 	uint32_t hash_nkeys;		/* Number of unique keys. */
 	uint32_t hash_ndata;		/* Number of data items. */
-	uint32_t hash_nblobs;		/* Number of blobs. */
 	uint32_t hash_pagecnt;		/* Page count. */
 	uint32_t hash_pagesize;	/* Page size. */
 	uint32_t hash_ffactor;		/* Fill factor specified at create. */
@@ -2397,7 +2321,6 @@ struct __db_heap_stat { /* SHARED */
 	uint32_t heap_magic;		/* Magic number. */
 	uint32_t heap_version;		/* Version number. */
 	uint32_t heap_metaflags;	/* Metadata flags. */
-	uint32_t heap_nblobs;		/* Number of blobs. */
 	uint32_t heap_nrecs;		/* Number of records. */
 	uint32_t heap_pagecnt;		/* Page count. */
 	uint32_t heap_pagesize;	/* Page size. */
@@ -2458,15 +2381,21 @@ alias int DB_MEM_CONFIG;
  * Backup configuration types.
  */
 enum {
-	DB_BACKUP_READ_COUNT=1,
-	DB_BACKUP_READ_SLEEP=2,
-	DB_BACKUP_SIZE=3,
-	DB_BACKUP_WRITE_DIRECT=4
+	DB_BACKUP_READ_COUNT = 1,
+	DB_BACKUP_READ_SLEEP = 2,
+	DB_BACKUP_SIZE = 3,
+	DB_BACKUP_WRITE_DIRECT = 4
 }
 alias int DB_BACKUP_CONFIG;
 
 struct __db_env {
 	ENV *env;			/* Linked ENV structure */
+
+	/*
+	 * The DB_ENV structure can be used concurrently, so field access is
+	 * protected.
+	 */
+	db_mutex_t mtx_db_env;		/* DB_ENV structure mutex */
 
 					/* Error message callback */
 	void function (const (DB_ENV)* , const (char)* , const (char)* ) db_errcall;
@@ -2490,7 +2419,6 @@ struct __db_env {
 	char *function (DB_ENV *, pid_t, db_threadid_t, char *) thread_id_string;
 
 	/* Application specified paths */
-	char	*db_blob_dir;		/* Blob file directory */
 	char	*db_log_dir;		/* Database log file directory */
 	char	*db_md_dir;		/* Persistent metadata directory */
 	char	*db_tmp_dir;		/* Database tmp file directory */
@@ -2513,8 +2441,6 @@ struct __db_env {
 	void	*api2_internal;		/* Java API private */
 
 	uint32_t	verbose;	/* DB_VERB_XXX flags */
-
-	uint32_t	blob_threshold;	/* Blob threshold record size */
 
 	/* Mutex configuration */
 	uint32_t	mutex_align;	/* Mutex alignment */
@@ -2584,11 +2510,6 @@ struct __db_env {
 					 * build settings.
 					 */
         db_timeout_t	envreg_timeout; /* DB_REGISTER wait timeout */
-	/*
-	 * When failchk broadcasting is active, any wait for a mutex will wake
-	 * up this frequently in order to check whether the mutex has died.
-	 */
-	db_timeout_t	mutex_failchk_timeout;
 
 	uint32_t flags;
 
@@ -2610,8 +2531,6 @@ struct __db_env {
 		void *function(void *, size_t)*, void function(void *)*) get_alloc;
 	int  function
 		(DB_ENV *, int function(DB_ENV *, DBT *, DB_LSN *, db_recops)*) get_app_dispatch;
-	int  function (DB_ENV *, const (char)* *) get_blob_dir;
-	int  function (DB_ENV*, uint32_t *) get_blob_threshold;
 	int  function (DB_ENV *, uint32_t *, uint32_t *) get_cache_max;
 	int  function (DB_ENV *, uint32_t *, uint32_t *, int *) get_cachesize;
 	int  function (DB_ENV *, const (char)* *) get_create_dir;
@@ -2627,8 +2546,8 @@ struct __db_env {
 		void function(const (DB_ENV)* , const (char)* , const (char)* )*) get_errcall;
 	void function (DB_ENV *, FILE **) get_errfile;
 	void function (DB_ENV *, const (char)* *) get_errpfx;
-	int  function (DB_ENV *, void function(DB_ENV *, int, int)*) get_feedback;
 	int  function (DB_ENV *, uint32_t *) get_flags;
+	int  function (DB_ENV *, void function(DB_ENV *, int, int)*) get_feedback;
 	int  function (DB_ENV *, const (char)* *) get_home;
 	int  function (DB_ENV *, const (char)* *) get_intermediate_dir_mode;
 	int  function (DB_ENV *,
@@ -2744,23 +2663,17 @@ struct __db_env {
 	int  function (DB_ENV *, int, db_timeout_t) rep_set_timeout;
 	int  function (DB_ENV *, int, int function(DB_ENV *,
 		const (DBT)* , const (DBT)* , const (DB_LSN)* , int, uint32_t)) rep_set_transport;
-	int  function (DB_ENV *, int function(DB_ENV *,
-		const (char)* , int *, uint32_t)) rep_set_view;
 	int  function (DB_ENV *, DBT *, uint32_t) rep_start;
 	int  function (DB_ENV *, DB_REP_STAT **, uint32_t) rep_stat;
 	int  function (DB_ENV *, uint32_t) rep_stat_print;
 	int  function (DB_ENV *, uint32_t) rep_sync;
 	int  function (DB_ENV *, int, DB_CHANNEL **, uint32_t) repmgr_channel;
 	int  function (DB_ENV *, int *) repmgr_get_ack_policy;
-	int  function
-		(DB_ENV *, uint32_t *, uint32_t *) repmgr_get_incoming_queue_max;
 	int  function (DB_ENV *, DB_SITE **) repmgr_local_site;
 	int  function (DB_ENV *,
 		void function(DB_ENV *, DB_CHANNEL *, DBT *, uint32_t, uint32_t),
 		uint32_t) repmgr_msg_dispatch;
 	int  function (DB_ENV *, int) repmgr_set_ack_policy;
-	int  function
-		(DB_ENV *, uint32_t, uint32_t) repmgr_set_incoming_queue_max;
 	int  function
 		(DB_ENV *, const (char)* , uint, DB_SITE**, uint32_t) repmgr_site;
 	int  function (DB_ENV *, int, DB_SITE**) repmgr_site_by_eid;
@@ -2772,8 +2685,6 @@ struct __db_env {
 		void *function(void *, size_t), void function(void *)) set_alloc;
 	int  function
 		(DB_ENV *, int function(DB_ENV *, DBT *, DB_LSN *, db_recops)) set_app_dispatch;
-	int  function (DB_ENV *, const (char)* ) set_blob_dir;
-	int  function (DB_ENV *, uint32_t, uint32_t) set_blob_threshold;
 	int  function (DB_ENV *, uint32_t, uint32_t) set_cache_max;
 	int  function (DB_ENV *, uint32_t, uint32_t, int) set_cachesize;
 	int  function (DB_ENV *, const (char)* ) set_create_dir;
@@ -2846,8 +2757,8 @@ struct __db_env {
 	/* DB_ENV PUBLIC HANDLE LIST END */
 
 	/* DB_ENV PRIVATE HANDLE LIST BEGIN */
-	int  function (DBT *, int, const (char)* , void *,
-		int function(void *, const (void)* ), int, int, int) prdbt;
+	int  function (DBT *, int,
+		const (char)* , void *, int function(void *, const (void)* ), int, int) prdbt;
 	/* DB_ENV PRIVATE HANDLE LIST END */
 };
 
@@ -2869,7 +2780,7 @@ enum	DB_ENV_TXN_NOWAIT	= 0x00004000; /* DB_TXN_NOWAIT set */
 enum	DB_ENV_TXN_SNAPSHOT	= 0x00008000; /* DB_TXN_SNAPSHOT set */
 enum	DB_ENV_TXN_WRITE_NOSYNC	= 0x00010000; /* DB_TXN_WRITE_NOSYNC set */
 enum	DB_ENV_YIELDCPU		= 0x00020000; /* DB_YIELDCPU set */
-enum	DB_ENV_NOFLUSH		= 0x00080000; /* DB_NOFLUSH set */
+enum DB_ENV_NOFLUSH		= 0x00080000; /* DB_NOFLUSH set */
 
 /*
  * Dispatch structure for recovery, log verification and print routines. Since
@@ -3065,6 +2976,7 @@ auto hsearch(T, U)(T a, U b)
 
 }
 
+
 /* DO NOT EDIT: automatically built by dist/s_apiflags. */
 enum	DB_AGGRESSIVE				= 0x00000001;
 enum	DB_ARCH_ABS				= 0x00000001;
@@ -3103,7 +3015,6 @@ enum	DB_FCNTL_LOCKING			= 0x00000800;
 enum	DB_FLUSH				= 0x00000002;
 enum	DB_FORCE				= 0x00000001;
 enum	DB_FORCESYNC				= 0x00000001;
-enum	DB_FORCESYNCENV				= 0x00000002;
 enum	DB_FOREIGN_ABORT			= 0x00000001;
 enum	DB_FOREIGN_CASCADE			= 0x00000002;
 enum	DB_FOREIGN_nullIFY			= 0x00000004;
@@ -3120,9 +3031,8 @@ enum	DB_INIT_MUTEX				= 0x00000800;
 enum	DB_INIT_REP				= 0x00001000;
 enum	DB_INIT_TXN				= 0x00002000;
 enum	DB_INORDER				= 0x00000020;
-enum	DB_INTERNAL_BLOB_DB			= 0x00001000;
-enum	DB_INTERNAL_PERSISTENT_DB		= 0x00002000;
-enum	DB_INTERNAL_TEMPORARY_DB		= 0x00004000;
+enum	DB_INTERNAL_PERSISTENT_DB		= 0x00001000;
+enum	DB_INTERNAL_TEMPORARY_DB		= 0x00002000;
 enum	DB_JOIN_NOSORT				= 0x00000001;
 enum	DB_LEGACY				= 0x00000004;
 enum	DB_LOCAL_SITE				= 0x00000008;
@@ -3135,13 +3045,11 @@ enum	DB_LOCK_SET_TIMEOUT			= 0x00000010;
 enum	DB_LOCK_SWITCH				= 0x00000020;
 enum	DB_LOCK_UPGRADE				= 0x00000040;
 enum	DB_LOG_AUTO_REMOVE			= 0x00000001;
-enum	DB_LOG_BLOB				= 0x00000002;
 enum	DB_LOG_CHKPNT				= 0x00000001;
 enum	DB_LOG_COMMIT				= 0x00000004;
-enum	DB_LOG_DIRECT				= 0x00000004;
-enum	DB_LOG_DSYNC				= 0x00000008;
+enum	DB_LOG_DIRECT				= 0x00000002;
+enum	DB_LOG_DSYNC				= 0x00000004;
 enum	DB_LOG_NOCOPY				= 0x00000008;
-enum	DB_LOG_NOSYNC				= 0x00000020;
 enum	DB_LOG_NOT_DURABLE			= 0x00000010;
 enum	DB_LOG_NO_DATA				= 0x00000002;
 enum	DB_LOG_VERIFY_CAF			= 0x00000001;
@@ -3153,7 +3061,7 @@ enum	DB_LOG_VERIFY_PARTIAL			= 0x00000020;
 enum	DB_LOG_VERIFY_VERBOSE			= 0x00000040;
 enum	DB_LOG_VERIFY_WARNING			= 0x00000080;
 enum	DB_LOG_WRNOSYNC				= 0x00000020;
-enum	DB_LOG_ZERO				= 0x00000040;
+enum	DB_LOG_ZERO				= 0x00000010;
 enum	DB_MPOOL_CREATE				= 0x00000001;
 enum	DB_MPOOL_DIRTY				= 0x00000002;
 enum	DB_MPOOL_DISCARD			= 0x00000001;
@@ -3171,18 +3079,17 @@ enum	DB_MULTIVERSION				= 0x00000008;
 enum	DB_MUTEX_ALLOCATED			= 0x00000001;
 enum	DB_MUTEX_LOCKED				= 0x00000002;
 enum	DB_MUTEX_LOGICAL_LOCK			= 0x00000004;
-enum	DB_MUTEX_OWNER_DEAD			= 0x00000020;
 enum	DB_MUTEX_PROCESS_ONLY			= 0x00000008;
 enum	DB_MUTEX_SELF_BLOCK			= 0x00000010;
-enum	DB_MUTEX_SHARED				= 0x00000040;
-enum	DB_NOERROR				= 0x00008000;
+enum	DB_MUTEX_SHARED				= 0x00000020;
+enum	DB_NOERROR				= 0x00004000;
 enum	DB_NOFLUSH				= 0x00001000;
 enum	DB_NOLOCKING				= 0x00002000;
 enum	DB_NOMMAP				= 0x00000010;
 enum	DB_NOORDERCHK				= 0x00000002;
 enum	DB_NOPANIC				= 0x00004000;
 enum	DB_NOSYNC				= 0x00000001;
-enum	DB_NO_AUTO_COMMIT			= 0x00010000;
+enum	DB_NO_AUTO_COMMIT			= 0x00008000;
 enum	DB_NO_CHECKPOINT			= 0x00008000;
 enum	DB_ODDFILESIZE				= 0x00000080;
 enum	DB_ORDERCHKONLY				= 0x00000004;
@@ -3193,7 +3100,7 @@ enum	DB_PRIVATE				= 0x00010000;
 enum	DB_PR_PAGE				= 0x00000010;
 enum	DB_PR_RECOVERYTEST			= 0x00000020;
 enum	DB_RDONLY				= 0x00000400;
-enum	DB_RDWRMASTER				= 0x00020000;
+enum	DB_RDWRMASTER				= 0x00010000;
 enum	DB_READ_COMMITTED			= 0x00000400;
 enum	DB_READ_UNCOMMITTED			= 0x00000200;
 enum	DB_RECNUM				= 0x00000040;
@@ -3204,20 +3111,17 @@ enum	DB_REGISTER				= 0x00040000;
 enum	DB_RENUMBER				= 0x00000080;
 enum	DB_REPMGR_CONF_2SITE_STRICT		= 0x00000001;
 enum	DB_REPMGR_CONF_ELECTIONS		= 0x00000002;
-enum	DB_REPMGR_CONF_PREFMAS_CLIENT		= 0x00000004;
-enum	DB_REPMGR_CONF_PREFMAS_MASTER		= 0x00000008;
 enum	DB_REPMGR_NEED_RESPONSE			= 0x00000001;
 enum	DB_REPMGR_PEER				= 0x00000010;
 enum	DB_REP_ANYWHERE				= 0x00000001;
 enum	DB_REP_CLIENT				= 0x00000001;
-enum	DB_REP_CONF_AUTOINIT			= 0x00000010;
-enum	DB_REP_CONF_AUTOROLLBACK		= 0x00000020;
-enum	DB_REP_CONF_BULK			= 0x00000040;
-enum	DB_REP_CONF_DELAYCLIENT			= 0x00000080;
-enum	DB_REP_CONF_ELECT_LOGLENGTH		= 0x00000100;
-enum	DB_REP_CONF_INMEM			= 0x00000200;
-enum	DB_REP_CONF_LEASE			= 0x00000400;
-enum	DB_REP_CONF_NOWAIT			= 0x00000800;
+enum	DB_REP_CONF_AUTOINIT			= 0x00000004;
+enum	DB_REP_CONF_AUTOROLLBACK		= 0x00000008;
+enum	DB_REP_CONF_BULK			= 0x00000010;
+enum	DB_REP_CONF_DELAYCLIENT			= 0x00000020;
+enum	DB_REP_CONF_INMEM			= 0x00000040;
+enum	DB_REP_CONF_LEASE			= 0x00000080;
+enum	DB_REP_CONF_NOWAIT			= 0x00000100;
 enum	DB_REP_ELECTION				= 0x00000004;
 enum	DB_REP_MASTER				= 0x00000002;
 enum	DB_REP_NOBUFFER				= 0x00000002;
@@ -3234,9 +3138,8 @@ enum	DB_SEQ_RANGE_SET			= 0x00000004;
 enum	DB_SEQ_WRAP				= 0x00000008;
 enum	DB_SEQ_WRAPPED				= 0x00000010;
 enum	DB_SET_LOCK_TIMEOUT			= 0x00000001;
-enum	DB_SET_MUTEX_FAILCHK_TIMEOUT		= 0x00000004;
-enum	DB_SET_REG_TIMEOUT			= 0x00000008;
-enum	DB_SET_TXN_NOW				= 0x00000010;
+enum	DB_SET_REG_TIMEOUT			= 0x00000004;
+enum	DB_SET_TXN_NOW				= 0x00000008;
 enum	DB_SET_TXN_TIMEOUT			= 0x00000002;
 enum	DB_SHALLOW_DUP				= 0x00000100;
 enum	DB_SNAPSHOT				= 0x00000200;
@@ -3262,7 +3165,7 @@ enum	DB_ST_TOPLEVEL				= 0x00010000;
 enum	DB_SYSTEM_MEM				= 0x00080000;
 enum	DB_THREAD				= 0x00000020;
 enum	DB_TIME_NOTGRANTED			= 0x00040000;
-enum	DB_TRUNCATE				= 0x00040000;
+enum	DB_TRUNCATE				= 0x00020000;
 enum	DB_TXN_BULK				= 0x00000010;
 enum	DB_TXN_FAMILY				= 0x00000040;
 enum	DB_TXN_NOSYNC				= 0x00000001;
@@ -3280,40 +3183,26 @@ enum	DB_VERB_BACKUP				= 0x00000001;
 enum	DB_VERB_DEADLOCK			= 0x00000002;
 enum	DB_VERB_FILEOPS				= 0x00000004;
 enum	DB_VERB_FILEOPS_ALL			= 0x00000008;
-enum	DB_VERB_MVCC				= 0x00000010;
-enum	DB_VERB_RECOVERY			= 0x00000020;
-enum	DB_VERB_REGISTER			= 0x00000040;
-enum	DB_VERB_REPLICATION			= 0x00000080;
-enum	DB_VERB_REPMGR_CONNFAIL			= 0x00000100;
-enum	DB_VERB_REPMGR_MISC			= 0x00000200;
-enum	DB_VERB_REP_ELECT			= 0x00000400;
-enum	DB_VERB_REP_LEASE			= 0x00000800;
-enum	DB_VERB_REP_MISC			= 0x00001000;
-enum	DB_VERB_REP_MSGS			= 0x00002000;
-enum	DB_VERB_REP_SYNC			= 0x00004000;
-enum	DB_VERB_REP_SYSTEM			= 0x00008000;
-enum	DB_VERB_REP_TEST			= 0x00010000;
-enum	DB_VERB_WAITSFOR			= 0x00020000;
+enum	DB_VERB_RECOVERY			= 0x00000010;
+enum	DB_VERB_REGISTER			= 0x00000020;
+enum	DB_VERB_REPLICATION			= 0x00000040;
+enum	DB_VERB_REPMGR_CONNFAIL			= 0x00000080;
+enum	DB_VERB_REPMGR_MISC			= 0x00000100;
+enum	DB_VERB_REP_ELECT			= 0x00000200;
+enum	DB_VERB_REP_LEASE			= 0x00000400;
+enum	DB_VERB_REP_MISC			= 0x00000800;
+enum	DB_VERB_REP_MSGS			= 0x00001000;
+enum	DB_VERB_REP_SYNC			= 0x00002000;
+enum	DB_VERB_REP_SYSTEM			= 0x00004000;
+enum	DB_VERB_REP_TEST			= 0x00008000;
+enum	DB_VERB_WAITSFOR			= 0x00010000;
 enum	DB_VERIFY				= 0x00000002;
 enum	DB_VERIFY_PARTITION			= 0x00040000;
 enum	DB_WRITECURSOR				= 0x00000010;
 enum	DB_WRITELOCK				= 0x00000020;
-enum	DB_WRITEOPEN				= 0x00080000;
+enum	DB_WRITEOPEN				= 0x00040000;
 enum	DB_XA_CREATE				= 0x00000001;
 enum	DB_YIELDCPU				= 0x00080000;
-
-/* DO NOT EDIT: automatically built by dist/s_include. */
-
-version(DB_WINCE){} else {
-version(DB_WIN32){
-} }
-version(DB_DBM_HSEARCH)
-{
-}
-version(DB_DBM_HSEARCH)
-{
-}
-
 
 /* DO NOT EDIT: automatically built by dist/s_include. */
 

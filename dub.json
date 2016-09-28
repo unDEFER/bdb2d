@@ -1,0 +1,35 @@
+{
+    "name": "bdb2d",
+    "targetName": "db",
+    "targetType": "library",
+    "description": "BerkeleyDB to D bindings.",
+    "authors": ["Nikolay (unDEFER) Krivchenkov"],
+    "homepage": "http://unde.su",
+    "license": "GPL-3.0 or later",
+    "sourcePaths": ["berkeleydb"],
+    "libs-posix": ["db"],
+
+    "subPackages": [
+        {
+            "name": "reader",
+            "description": "BerkeleyDB Transaction test. Reader",
+            "targetName": "reader",
+            "targetType": "executable",
+            "sourceFiles": ["transactions_test/reader.d"],
+            "targetPath": "transactions_test",
+            "dependencies": {
+                "bdb2d": "*"
+            }
+        }, {
+            "name": "writer",
+            "description": "BerkeleyDB Transaction test. Writer",
+            "targetName": "writer",
+            "targetType": "executable",
+            "sourceFiles": ["transactions_test/writer.d"],
+            "targetPath": "transactions_test",
+            "dependencies": {
+                "bdb2d": "*"
+            }
+        }
+    ]
+}

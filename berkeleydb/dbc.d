@@ -193,6 +193,8 @@ public:
     }
 
     /* BLOBs and Related Methods */
+version(VERSION_6)
+{
     DbStream db_stream(uint32_t flags = 0)
     {
         if (opened < 0) {
@@ -207,4 +209,5 @@ public:
         assert(ret == 0);
         return new DbStream(res, dbenv);
     }
+}
 }

@@ -172,6 +172,8 @@ public:
         assert(ret == 0);
     }
 
+version(VERSION_6)
+{
     uint32_t get_cachesize()
     {
         if (opened < 0) {
@@ -183,6 +185,7 @@ public:
         assert(ret == 0);
         return res;
     }
+}
 
     void set_flags(uint32_t flags = 0)
     {

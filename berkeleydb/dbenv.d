@@ -2005,6 +2005,8 @@ public:
     }
     
     /* BLOB Configuration */
+version(VERSION_6)
+{
     void set_blob_dir(string dir)
     {
         if (opened < 0) {
@@ -2051,7 +2053,7 @@ public:
         assert(ret == 0);
         return res;
     }
-
+}
     /* Mutex Methods */
     void mutex_alloc(uint32_t flags, ref db_mutex_t mutex)
     {
@@ -2700,6 +2702,8 @@ public:
         }
     }
 
+version(VERSION_6)
+{
     void rep_set_view(int function(DbEnv dbenv,
                 string name, ref int result, uint32_t flags = 0) partial_func)
     {
@@ -2714,6 +2718,7 @@ public:
         DbRetCodeToException(ret, this);
         assert(ret == 0);
     }
+}
 
     /* Transaction Operations */
     int txn_applied(DbTxnToken *token, db_timeout_t timeout, uint32_t flags = 0)

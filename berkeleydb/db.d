@@ -649,6 +649,8 @@ public:
 
     private
     {
+version(VERSION_6)
+{
         int function(Db db,
                 const (Dbt) *dbt1, const (Dbt) *dbt2, size_t *locp) dup_compare_callback_refer;
 
@@ -660,10 +662,27 @@ public:
                 const (Dbt) *dbt2 = cast(const (Dbt) *) _dbt2;
                 return db.dup_compare_callback_refer(db, dbt1, dbt2, locp);
         }
+
+        alias int function(Db db, const (Dbt) *dbt1, const (Dbt) *dbt2, size_t *locp) dup_compare_fcn_t;
+}
+else
+{
+        int function(Db db,
+                const (Dbt) *dbt1, const (Dbt) *dbt2) dup_compare_callback_refer;
+
+        extern (C) static int dup_compare_callback(DB *_db,
+                const (DBT) *_dbt1, const (DBT) *_dbt2)
+        {
+                Db db = from_DB(_db);
+                const (Dbt) *dbt1 = cast(const (Dbt) *) _dbt1;
+                const (Dbt) *dbt2 = cast(const (Dbt) *) _dbt2;
+                return db.dup_compare_callback_refer(db, dbt1, dbt2);
+        }
+        alias int function(Db db, const (Dbt) *dbt1, const (Dbt) *dbt2) dup_compare_fcn_t;
+}
     }
 
-    void set_dup_compare(int function(Db db,
-                const (Dbt) *dbt1, const (Dbt) *dbt2, size_t *locp) dup_compare_fcn)
+    void set_dup_compare(dup_compare_fcn_t dup_compare_fcn)
     {
         if (opened < 0) {
             throw new DbWrongUsingException("Configuration on closed Db");
@@ -971,6 +990,8 @@ public:
 
     private
     {
+version(VERSION_6)
+{
         int function(Db db, const (Dbt) *dbt1, const (Dbt) *dbt2, size_t *locp) bt_compare_callback_refer;
 
         extern (C) static int bt_compare_callback(DB *_db, const (DBT) *_dbt1, const (DBT) *_dbt2, size_t *locp)
@@ -980,10 +1001,24 @@ public:
                 const (Dbt) *dbt2 = cast(const (Dbt) *) _dbt2;
                 return db.bt_compare_callback_refer(db, dbt1, dbt2, locp);
         }
+        alias int function(Db db, const (Dbt) *dbt1, const (Dbt) *dbt2, size_t *locp) bt_compare_fcn_t;
+}
+else
+{
+        int function(Db db, const (Dbt) *dbt1, const (Dbt) *dbt2) bt_compare_callback_refer;
+
+        extern (C) static int bt_compare_callback(DB *_db, const (DBT) *_dbt1, const (DBT) *_dbt2)
+        {
+                Db db = from_DB(_db);
+                const (Dbt) *dbt1 = cast(const (Dbt) *) _dbt1;
+                const (Dbt) *dbt2 = cast(const (Dbt) *) _dbt2;
+                return db.bt_compare_callback_refer(db, dbt1, dbt2);
+        }
+        alias int function(Db db, const (Dbt) *dbt1, const (Dbt) *dbt2) bt_compare_fcn_t;
+}
     }
 
-    void set_bt_compare(int function(Db db,
-                const (Dbt) *dbt1, const (Dbt) *dbt2, size_t *locp) bt_compare_fcn)
+    void set_bt_compare(bt_compare_fcn_t bt_compare_fcn)
     {
         if (opened < 0) {
             throw new DbWrongUsingException("Operation on closed Db");
@@ -1210,6 +1245,8 @@ public:
     /* Hash Configuration */
     private
     {
+version(VERSION_6)
+{
         int function(Db db, const (Dbt) *dbt1,
                 const (Dbt) *dbt2, size_t *locp) compare_callback_refer;
 
@@ -1221,10 +1258,28 @@ public:
                 const (Dbt) *dbt2 = cast(const (Dbt) *) _dbt2;
                 return db.compare_callback_refer(db, dbt1, dbt2, locp);
         }
+
+        alias int function(Db db, const (Dbt) *dbt1, const (Dbt) *dbt2, size_t *locp) compare_fcn_t;
+}
+else
+{
+        int function(Db db, const (Dbt) *dbt1,
+                const (Dbt) *dbt2) compare_callback_refer;
+
+        extern (C) static int compare_callback(DB *_db,
+                const (DBT) *_dbt1, const (DBT) *_dbt2)
+        {
+                Db db = from_DB(_db);
+                const (Dbt) *dbt1 = cast(const (Dbt) *) _dbt1;
+                const (Dbt) *dbt2 = cast(const (Dbt) *) _dbt2;
+                return db.compare_callback_refer(db, dbt1, dbt2);
+        }
+
+        alias int function(Db db, const (Dbt) *dbt1, const (Dbt) *dbt2) compare_fcn_t;
+}
     }
 
-    void set_h_compare(int function(Db db,
-                const (Dbt) *dbt1, const (Dbt) *dbt2, size_t *locp) compare_fcn)
+    void set_h_compare(compare_fcn_t compare_fcn)
     {
         if (opened < 0) {
             throw new DbWrongUsingException("Operation on closed Db");
@@ -1424,6 +1479,8 @@ public:
     }
 
     /* BLOB Configuration */
+version(VERSION_6)
+{
     void set_blob_dir(string dir)
     {
         if (opened < 0) {
@@ -1473,6 +1530,7 @@ public:
         assert(ret == 0);
         return res;
     }
+}
 }
 
 void db_copy(DbEnv dbenv, string dbfile, string target, 
