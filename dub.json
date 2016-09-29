@@ -6,7 +6,6 @@
     "authors": ["Nikolay (unDEFER) Krivchenkov"],
     "homepage": "http://unde.su",
     "license": "GPL-3.0 or later",
-    "sourcePaths": ["berkeleydb"],
     "libs-posix": ["db"],
 
     "subPackages": [
