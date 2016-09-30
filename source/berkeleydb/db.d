@@ -1569,15 +1569,15 @@ unittest
     }
     
     struct customer {
-           char cust_id[4];
-           char last_name[15];
-           char first_name[15];
-    };
+           char[4] cust_id;
+           char[15] last_name;
+           char[15] first_name;
+    }
     struct order {
-           char order_id[4];
+           char[4] order_id;
            int order_number;
-           char cust_id[4];
-    };
+           char[4] cust_id;
+    }
 
     DbEnv dbenv = new DbEnv(0);
 
