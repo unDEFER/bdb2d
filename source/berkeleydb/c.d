@@ -27,8 +27,33 @@ import core.stdc.stddef;
 import core.stdc.stdio;
 import std.file;
 import core.sys.posix.pthread;
+version(Windows)
+{
+alias long bdb_time_t;
+}
+else
+{
+alias time_t bdb_time_t;
+}
 
-
+/*
+ * Turn off inappropriate compiler warnings
+ */
+version(MSCVER)
+{
+/*
+ * This warning is explicitly disabled in Visual C++ by default.
+ * It is necessary to explicitly enable the /Wall flag to generate this
+ * warning.
+ * Since this is a shared include file it should compile without warnings
+ * at the highest warning level, so third party applications can use
+ * higher warning levels cleanly.
+ *
+ * 4820: 'bytes' bytes padding added after member 'member'
+ *       The type and order of elements caused the compiler to
+ *       add padding to the end of a struct.
+ */
+}
 extern (C) {
 
 
@@ -62,10 +87,15 @@ string	DB_VERSION_FULL_STRING	= "Berkeley DB 11g Release 2, library version 11.2
  * by the system.
  */
 
-
-
-
-
+version(Windows)
+{
+version(_WINSOCKAPI_) {}
+else
+{
+alias ubyte u_char;
+}
+alias ushort u_short;
+}
 
 /*
  * Missing ANSI types.
@@ -85,13 +115,29 @@ string	DB_VERSION_FULL_STRING	= "Berkeley DB 11g Release 2, library version 11.2
  * get upset about that.  So far we haven't run on any machine where there's
  * no unsigned type the same size as a pointer -- here's hoping.
  */
+version(Windows)
+{
+version(MSCVER_LESS_1300)
+{
+alias uint32_t uintmax_t;
+} else {
+alias uint64_t uintmax_t;
+}
+version(Win64)
+{
+alias uint64_t uintptr_t;
+} else {
+alias uint32_t uintptr_t;
+}
 
-
-
-
-
-
-
+/*
+ * Windows defines off_t to c_long (i.e., 32 bits).  We need to pass 64-bit
+ * file offsets, so we declare our own.
+ */
+alias int64_t __db_off_t;
+alias int64_t off_t;
+alias int32_t pid_t;
+}
 version(HAVE_MIXED_SIZE_ADDRESSING)
 {
 alias uint32_t db_size_t;
@@ -102,6 +148,15 @@ alias size_t db_size_t;
 }
 
 
+version(Windows)
+{
+version(Win64)
+{
+alias int64_t ssize_t;
+} else {
+alias int32_t ssize_t;
+}
+}
 version(HAVE_MIXED_SIZE_ADDRESSING)
 {
 alias int32_t db_ssize_t;
@@ -112,7 +167,18 @@ alias ssize_t db_ssize_t;
 }
 
 
+version (Windows)
+{
+/*
+ * Sequences are only available on machines with 64-bit integral types.
+ */
+alias int64_t db_seq_t;
 
+/* Thread and process identification. */
+alias uint32_t db_threadid_t;
+}
+else
+{
 /*
  * Sequences are only available on machines with 64-bit integral types.
  */
@@ -120,7 +186,7 @@ alias c_long db_seq_t;
 
 /* Thread and process identification. */
 alias pthread_t db_threadid_t;
-
+}
 /* Basic types that are exported or quasi-exported. */
 alias	uint32_t	db_pgno_t;	/* Page number type. */
 alias	uint16_t	db_indx_t;	/* Page offset type. */
@@ -1069,7 +1135,7 @@ version(TEST_DB_NO_STATISTICS)
 else
 {
 	DB_LSN	  st_last_ckp;		/* lsn of the last checkpoint */
-	time_t	  st_time_ckp;		/* time of last checkpoint */
+	bdb_time_t	  st_time_ckp;		/* time of last checkpoint */
 	uint32_t st_last_txnid;	/* last transaction id given out */
 	uint32_t st_inittxns;		/* inital txns allocated */
 	uint32_t st_maxtxns;		/* maximum txns possible */
@@ -1525,7 +1591,7 @@ struct __db {
 	DB_LOCKER *associate_locker;	/* Locker for DB.associate call. */
 	DB_LOCK	 handle_lock;		/* Lock held on this handle. */
 
-	time_t	 timestamp;		/* Handle timestamp for replication. */
+	bdb_time_t	 timestamp;		/* Handle timestamp for replication. */
 	uint32_t fid_gen;		/* Rep generation number for fids. */
 
 	/*
@@ -2491,7 +2557,7 @@ struct __db_env {
 	/* Transaction configuration */
 	uint32_t	tx_init;	/* Initial number of transactions */
 	uint32_t	tx_max;		/* Maximum number of transactions */
-	time_t		tx_timestamp;	/* Recover to specific timestamp */
+	bdb_time_t		tx_timestamp;	/* Recover to specific timestamp */
 	db_timeout_t	tx_timeout;	/* Timeout for transactions */
 
 	/* Thread tracking configuration */
@@ -2587,7 +2653,7 @@ struct __db_env {
 	int  function (DB_ENV *, db_timeout_t *, uint32_t) get_timeout;
 	int  function (DB_ENV *, const (char)* *) get_tmp_dir;
 	int  function (DB_ENV *, uint32_t *) get_tx_max;
-	int  function (DB_ENV *, time_t *) get_tx_timestamp;
+	int  function (DB_ENV *, bdb_time_t *) get_tx_timestamp;
 	int  function (DB_ENV *, uint32_t, int *) get_verbose;
 	int  function () is_bigendian;
 	int  function (DB_ENV *, uint32_t, uint32_t, int *) lock_detect;
@@ -2743,7 +2809,7 @@ struct __db_env {
 	int  function (DB_ENV *, db_timeout_t, uint32_t) set_timeout;
 	int  function (DB_ENV *, const (char)* ) set_tmp_dir;
 	int  function (DB_ENV *, uint32_t) set_tx_max;
-	int  function (DB_ENV *, time_t *) set_tx_timestamp;
+	int  function (DB_ENV *, bdb_time_t *) set_tx_timestamp;
 	int  function (DB_ENV *, uint32_t, int) set_verbose;
 	int  function (DB_ENV *,
 		DB_TXN_TOKEN *, db_timeout_t, uint32_t) txn_applied;
@@ -2803,7 +2869,7 @@ struct __db_logvrfy_config {
 	const (char)* temp_envhome;
 	const (char)* dbfile, dbname;
 	DB_LSN start_lsn, end_lsn;
-	time_t start_time, end_time;
+	bdb_time_t start_time, end_time;
 };
 
 struct __db_channel {

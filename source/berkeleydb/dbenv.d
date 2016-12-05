@@ -39,6 +39,15 @@ import std.array;
 import std.format;
 import core.sys.posix.pthread;
 
+version(Windows)
+{
+alias long bdb_time_t;
+}
+else
+{
+alias time_t bdb_time_t;
+}
+
 alias DB_MEM_CONFIG DbMemConfig;
 alias DB_LOCK DbLock;
 alias DB_LOCK_STAT DbLockStat;
@@ -1902,7 +1911,7 @@ public:
             throw new DbWrongUsingException("Transaction configuration on closed DbEnv");
         }
         c_long res;
-        auto ret = dbenv.txn_recover(dbenv, preplist.ptr, preplist.count, &res, flags);
+        auto ret = dbenv.txn_recover(dbenv, preplist.ptr, cast(int)preplist.count, &res, flags);
         DbRetCodeToException(ret, this);
         assert(ret == 0);
         return res;
@@ -1966,7 +1975,7 @@ public:
         return res;
     }
 
-    void set_tx_timestamp(ref time_t timestamp)
+    void set_tx_timestamp(ref bdb_time_t timestamp)
     {
         if (opened < 0) {
             throw new DbWrongUsingException("Transaction configuration on closed DbEnv");
@@ -1979,12 +1988,12 @@ public:
         assert(ret == 0);
     }
 
-    time_t get_tx_timestamp()
+    bdb_time_t get_tx_timestamp()
     {
         if (opened < 0) {
             throw new DbWrongUsingException("Transaction configuration on closed DbEnv");
         }
-        time_t res;
+        bdb_time_t res;
         auto ret = dbenv.get_tx_timestamp(dbenv, &res);
         DbRetCodeToException(ret, this);
         assert(ret == 0);

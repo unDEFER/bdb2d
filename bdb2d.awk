@@ -78,6 +78,7 @@ SKIP_PREDEFINES && /^(int|char|void) +[a-zA-Z0-9_]+\(((const )? *[A-Za-z]+ *\*?,
     print "import core.stdc.stdio;";
     print "import std.file;";
     print "import core.sys.posix.pthread;";
+    print "version(Windows)\n{\nalias long time_t;\n}";
     next 
 }
 /@unistd_h_decl@/ { print "import std.file;"; next }
@@ -126,6 +127,35 @@ ifndef_def { next }
 	$0 = "version(TEST_DB_NO_STATISTICS)\n{\n}\nelse\n{";
 	ifndef_nostat=1; 
 }
+/^#pragma warning/ {
+	next;
+}
+/^#ifndef _WINSOCKAPI_/ {
+	print "version(_WINSOCKAPI_) {}\nelse\n{";
+	ifdef_winsockapi=1; 
+	next;
+}
+ifdef_winsockapi && /^#endif/ { print "}"; ifdef_winsockapi=0; next; }
+/^#ifdef _MSC_VER/ {
+	print "version(MSCVER)\n{";
+	ifdef_msc_ver=1; 
+	next;
+}
+ifdef_msc_ver && /^#endif/ { print "}"; ifdef_msc_ver=0; next; }
+/^#if defined\(_MSC_VER\) && _MSC_VER < 1300/ {
+	print "version(MSCVER_LESS_1300)\n{";
+	ifdef_msc_ver_less_1300=1; 
+	next;
+}
+ifdef_msc_ver_less_1300 && /^#else/ { print "} else {"; next; }
+ifdef_msc_ver_less_1300 && /^#endif/ { print "}"; ifdef_msc_ver_less_1300=0; next; }
+/^#ifdef[ \t].*_WIN64/ { 
+	print "version(Win64)\n{";
+	ifdef_win64=1; 
+	next;
+}
+ifdef_win64 && /^#else/ { print "} else {"; next; }
+ifdef_win64 && /^#endif/ { print "}"; ifdef_win64=0; next; }
 /^#ifdef[ \t].*CONFIG_TEST/ { 
 	print "version(CONFIG_TEST)\n{";
 	ifdef_ct=1; 
@@ -216,6 +246,11 @@ ifdef_mixed_size && /^#endif/ {
 /u_long/ { $0 = gensub(/u_long/, "ulong", "g"); }
 /u_int/ { $0 = gensub(/u_int/, "uint", "g"); }
 /unsigned long/ { $0 = gensub(/unsigned long/, "c_ulong", "g"); }
+/unsigned char/ { $0 = gensub(/unsigned char/, "ubyte", "g"); }
+/typedef unsigned int uint;/ { next; }
+/typedef c_ulong ulong;/ { next; }
+/unsigned int/ { $0 = gensub(/unsigned int/, "uint", "g"); }
+/unsigned short/ { $0 = gensub(/unsigned short/, "ushort", "g"); }
 /\<long\>/ { $0 = gensub(/\<long\>/, "c_long", "g"); }
 /char \*\*\[\]/ { $0 = gensub(/char \*\*\[\]/, "char ***", "g"); }
 
@@ -400,6 +435,11 @@ funcstart==1 && /\(.*\)[ \t]*;/ {
 	funcstart=0;
 	$0 = gensub(/\)[ \t]*;/, sprintf(") %s;", funcname), "g");
 	}
+
+/^#define	off_t	__db_off_t/ {
+	print "alias int64_t __db_off_t;";
+	next;
+}
 
 /^#define[ \t]+(DB_VERSION_[A-Z_]+)([ \t]+)(@[A-Z_]+@)/ {
 		if (match($0, /STRING/))

@@ -21,17 +21,20 @@
 module main;
 import std.algorithm;
 import std.stdio;
+import std.string;
 import berkeleydb.all;
 import core.thread;
+import core.sys.posix.stdlib;
 import std.file;
 import std.stdint;
 import std.conv;
 
 void main()
 {
+    string tmp = fromStringz(getenv("TMP".toStringz())).idup();
     try{
-        mkdir("/tmp/berkeleydb.locks");
-    } catch (FileException file)
+        mkdir(tmp~"/berkeleydb.locks");
+    } catch (Exception file)
     {
     }
 
@@ -44,7 +47,7 @@ void main()
                 DB_INIT_LOG  | /* Initialize logging */
                 DB_INIT_MPOOL; /* Initialize the in-memory cache. */
 
-    dbenv.open("/tmp/berkeleydb.locks/", env_flags, octal!666);
+    dbenv.open(tmp~"/berkeleydb.locks/", env_flags, octal!666);
 
     Db db = new Db(dbenv, 0);
     db.open(null, "numbers.db", null, DB_BTREE, DB_CREATE | DB_AUTO_COMMIT | DB_MULTIVERSION, octal!600);
@@ -66,6 +69,7 @@ void main()
                 writeln("number is ", the_number);
             else
                 writeln("number not written");
+	    stdout.flush();
             the_number++;
         }
         txn.commit();
