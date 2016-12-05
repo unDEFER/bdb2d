@@ -32,6 +32,7 @@ import std.conv;
 void main()
 {
     string tmp = fromStringz(getenv("TMP".toStringz())).idup();
+    if (tmp == "") tmp = "/tmp";
     try{
         mkdir(tmp~"/berkeleydb.locks");
     } catch (Exception file)
