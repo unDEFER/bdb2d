@@ -8,7 +8,7 @@
     "license": "GPL-3.0 or later",
     "libs-posix": ["db"],
     "libs-windows-dmd": ["libdb53sd", "WS2_32"],
-    "dflags-windows": ["-m32mscoff"],
+    "dflags-windows": ["--arch=x86_mscoff"],
     "lflags-windows": ["/NODEFAULTLIB:LIBCMTD"],
 
     "subPackages": [
