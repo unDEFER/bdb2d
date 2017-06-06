@@ -153,10 +153,10 @@ public:
 		if (opened < 0) {
 			throw new DbWrongUsingException("Operation on closed DbEnv");
 		}
-		if (!txnid._DB_TXN) {
+		if (txnid && !txnid._DB_TXN) {
 			throw new DbWrongUsingException("Operation on closed DbTxn");
 		}
-        auto ret = dbenv.dbremove(dbenv, txnid._DB_TXN, file.toStringz(), database.toStringz(), flags);
+        auto ret = dbenv.dbremove(dbenv, txnid?txnid._DB_TXN:null, file.toStringz(), database.toStringz(), flags);
         DbRetCodeToException(ret, this);
         assert(ret == 0);
     }
@@ -166,10 +166,10 @@ public:
 		if (opened < 0) {
 			throw new DbWrongUsingException("Operation on closed DbEnv");
 		}
-		if (!txnid._DB_TXN) {
+		if (txnid && !txnid._DB_TXN) {
 			throw new DbWrongUsingException("Operation on closed DbTxn");
 		}
-        auto ret = dbenv.dbrename(dbenv, txnid._DB_TXN, file.toStringz(), database.toStringz(), newname.toStringz(), flags);
+        auto ret = dbenv.dbrename(dbenv, txnid?txnid._DB_TXN:null, file.toStringz(), database.toStringz(), newname.toStringz(), flags);
         DbRetCodeToException(ret, this);
         assert(ret == 0);
     }
